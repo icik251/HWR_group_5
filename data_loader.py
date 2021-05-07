@@ -57,9 +57,23 @@ class DataLoader:
             if idx == num_samples:
                 break
 
+            # Without converting to binary image
+            
             list_of_result.append(
-                cv2.imread(os.path.join(path_to_char_dir, char_image), -1)
+                cv2.imread(os.path.join(path_to_char_dir, char_image), cv2.IMREAD_GRAYSCALE)
             )
+            
+            # Converting to binary
+            """
+            img_gray = cv2.imread(
+                os.path.join(path_to_char_dir, char_image), cv2.IMREAD_GRAYSCALE
+            )
+            
+            (thresh, img_binary) = cv2.threshold(
+                img_gray, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU
+            )
+            list_of_result.append(img_binary)
+            """
 
         return list_of_result
 
@@ -81,7 +95,7 @@ class DataLoader:
 
 
 # Test the methods
-""" 
+"""
 data_loader = DataLoader()
 dict_result = data_loader.get_characters_train_data(
     path="D:\\PythonProjects\\HWR_group_5\\data\\character_set_labeled",
@@ -89,13 +103,9 @@ dict_result = data_loader.get_characters_train_data(
 )
 
 for k, v in dict_result.items():
-    print(k)
-    print(len(v))
-    print("----------")
-
-list_of_binarized = data_loader.get_sea_scrolls_images(
-    path="D:\\PythonProjects\\HWR_group_5\\data\\dead_sea_scrolls_images"
-)
-
-print(list_of_binarized)
+    temp_alef = v[0]
+    first_row = temp_alef[1,:]
+    print(first_row)
+    last_row = temp_alef[-1,:]
+    print(last_row)
 """
