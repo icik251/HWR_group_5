@@ -81,7 +81,7 @@ class DataLoader:
 
 
 # Test the methods
-""" 
+"""
 data_loader = DataLoader()
 dict_result = data_loader.get_characters_train_data(
     path="D:\\PythonProjects\\HWR_group_5\\data\\character_set_labeled",
