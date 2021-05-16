@@ -4,6 +4,7 @@ from data_loader import DataLoader
 import numpy as np
 from skimage.morphology import medial_axis, skeletonize
 import matplotlib.pyplot as plt
+import copy
 
 
 class CharacterProcessing:
@@ -11,8 +12,46 @@ class CharacterProcessing:
         self.dict_of_chars = dict_of_chars
         self.dict_of_structuring_elements = dict()
 
+    @staticmethod
+    def crop_white_spaces_image(image):
+        # Load image, grayscale, Gaussian blur, Otsu's threshold
+        original = image.copy()
+        # gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        blur = cv2.GaussianBlur(image, (25, 25), 0)
+        thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
+
+        # Perform morph operations, first open to remove noise, then close to combine
+        noise_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+        opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, noise_kernel, iterations=2)
+        close_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (7, 7))
+        close = cv2.morphologyEx(opening, cv2.MORPH_CLOSE, close_kernel, iterations=3)
+
+        # Find enclosing boundingbox and crop ROI
+        coords = cv2.findNonZero(close)
+        x, y, w, h = cv2.boundingRect(coords)
+        cv2.rectangle(image, (x, y), (x + w, y + h), (36, 255, 12), 2)
+        crop = original[y : y + h, x : x + w]
+
+        return crop
+    
+    @staticmethod
+    def crop_white_spaces_image_v2(image):
+        gray = image
+        gray = 255*(gray < 128).astype(np.uint8) # To invert the text to white
+        coords = cv2.findNonZero(gray) # Find all non-zero points (text)
+        x, y, w, h = cv2.boundingRect(coords) # Find minimum spanning bounding box
+        rect = image[y:y+h, x:x+w] # Crop the image - note we do this on the original image
+        
+        return rect
+
     def resize_image(self, image, shape: tuple):
         return cv2.resize(image, shape)
+
+    def crop_white_spaces(self, list_of_samples):
+        list_of_result = list()
+        for sample in list_of_samples:
+            list_of_result.append(CharacterProcessing.crop_white_spaces_image(sample))
+        return list_of_result
 
     def normalize_character_images_size(self, letter, list_of_samples, save_mode=True):
         new_shape = [0, 0]
@@ -32,7 +71,7 @@ class CharacterProcessing:
             resized_img = self.resize_image(sample, new_shape)
             # convert to binary (not working here because there are no intersections,
             # in the case of 300 examples like Alef)
-            threshold, resized_img_binary = self.convert_image_to_binary(
+            threshold, resized_img_binary = CharacterProcessing.convert_image_to_binary(
                 resized_img, mode="median"
             )
 
@@ -49,24 +88,26 @@ class CharacterProcessing:
             os.path.join("data\\resized_binary", letter, "{}.pgm".format(img_name)), img
         )
 
-    def convert_image_to_binary(self, image, mode="median"):
+    @staticmethod
+    def convert_image_to_binary(image, mode="median"):
         if mode == "median":
             median_value = np.median(image)
             threshold = int(median_value / 1.33)
 
             (_, image_binary) = cv2.threshold(image, threshold, 255, cv2.THRESH_BINARY)
-        else:
-            (threshold, image_binary) = cv2.threshold(
-                image, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU
-            )
+        elif isinstance(mode, int):
+            (_, image_binary) = cv2.threshold(image, mode, 255, cv2.THRESH_BINARY)
+            threshold = mode
 
-        return threshold, image_binary
+        return int(threshold), image_binary
 
-    def create_alpha_structuring_elements(self, save_mode=False):
+    def create_alpha_structuring_elements(self, save_mode=False, threshold_mode=5):
         for letter, list_of_samples in self.dict_of_chars.items():
 
+            list_of_samples_cropped = self.crop_white_spaces(list_of_samples)
+
             list_of_samples_resized = self.normalize_character_images_size(
-                letter, list_of_samples, save_mode=save_mode
+                letter, list_of_samples_cropped, save_mode=save_mode
             )
 
             for idx, train_sample in enumerate(list_of_samples_resized):
@@ -88,8 +129,8 @@ class CharacterProcessing:
             )
             structuring_element = np.rint(structuring_element).astype("uint8")
 
-            threshold, structuring_element_binary = self.convert_image_to_binary(
-                structuring_element, mode="median"
+            threshold, structuring_element_binary = CharacterProcessing.convert_image_to_binary(
+                structuring_element, mode=threshold_mode
             )
 
             self.dict_of_structuring_elements[letter] = (
@@ -135,7 +176,7 @@ class CharacterProcessing:
 
             # skel_rgb = cv2.cvtColor(skel, cv2.COLOR_BGR2RGB)
 
-            self.save_final_structuring_element(letter, skel)
+            self.save_final_structuring_element(letter, threshold, skel)
 
             """
             dist_on_skel = distance * skel
@@ -153,13 +194,14 @@ class CharacterProcessing:
             plt.show()
             """
 
-    def save_final_structuring_element(self, letter, structuring_element):
+    def save_final_structuring_element(self, letter, threshold, structuring_element):
         if not os.path.exists(os.path.join("data\\final_structuring_elements_binary")):
             os.makedirs(os.path.join("data\\final_structuring_elements_binary"))
 
         cv2.imwrite(
             os.path.join(
-                "data\\final_structuring_elements_binary", "{}.pgm".format(letter)
+                "data\\final_structuring_elements_binary",
+                "{}_{}.pgm".format(letter, threshold),
             ),
             structuring_element,
         )
@@ -167,15 +209,17 @@ class CharacterProcessing:
     def get_structuring_elements(self):
         return self.dict_of_structuring_elements
 
-    def build_structuring_elements(self, save_normalized=False):
-        self.create_alpha_structuring_elements(save_normalized)
+    def build_structuring_elements(self, save_normalized=False, threshold_mode=5):
+        self.create_alpha_structuring_elements(save_normalized, threshold_mode)
         self.create_final_structuring_element()
 
-
+"""
 data_loader = DataLoader()
 dict_result = data_loader.get_characters_train_data(
     path="D:\\PythonProjects\\HWR_group_5\\data\\character_set_labeled"
 )
 
-char_processing = CharacterProcessing(dict_result)
-char_processing.build_structuring_elements(save_normalized=True)
+for i in range(1, 11):
+    char_processing = CharacterProcessing(copy.deepcopy(dict_result))
+    char_processing.build_structuring_elements(save_normalized=True, threshold_mode=i)
+"""

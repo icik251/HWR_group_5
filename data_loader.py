@@ -58,11 +58,13 @@ class DataLoader:
                 break
 
             # Without converting to binary image
-            
+
             list_of_result.append(
-                cv2.imread(os.path.join(path_to_char_dir, char_image), cv2.IMREAD_GRAYSCALE)
+                cv2.imread(
+                    os.path.join(path_to_char_dir, char_image), cv2.IMREAD_GRAYSCALE
+                )
             )
-            
+
             # Converting to binary
             """
             img_gray = cv2.imread(
@@ -84,14 +86,14 @@ class DataLoader:
             path: Path to the sea scrolls images.
 
         Returns:
-            list_of_result: List contatining all loaded images.
+            dict_of_result: Dict with key: scroll name and value: loaded scroll.
         """
-        list_of_result = list()
+        dict_of_result = dict()
         for image in os.listdir(path):
             if image.endswith("binarized.jpg"):
-                list_of_result.append(cv2.imread(os.path.join(path, image), 0))
+                dict_of_result[image.split('.')[0]] = cv2.imread(os.path.join(path, image), -1)
 
-        return list_of_result
+        return dict_of_result
 
 
 # Test the methods
