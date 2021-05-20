@@ -73,12 +73,12 @@ class CharacterRecognition:
 
         _, bw_kernel = CharacterProcessing.convert_image_to_binary(cropped_kernel)
 
-        #final_kernel = CharacterRecognition.inverse_image(bw_kernel)
-        #final_image_scroll = CharacterRecognition.inverse_image(image_scroll)
+        final_kernel = CharacterRecognition.inverse_image(bw_kernel)
+        final_image_scroll = CharacterRecognition.inverse_image(image_scroll)
 
         # kernel = np.ones((1, 1), np.uint8)
 
-        result = cv2.erode(image_scroll, bw_kernel, iterations=1)
+        result = cv2.erode(final_image_scroll, final_kernel, iterations=1)
 
         cv2.imwrite(
             os.path.join(path_to_save, "threshold_{}.pgm".format(self.threshold)),
@@ -106,9 +106,12 @@ dict_of_scrolls = data_loader.get_sea_scrolls_images(
     "D:\\PythonProjects\\HWR_group_5\\data\\dead_sea_scrolls_images"
 )
 
+dict_of_scrolls = dict()
+dict_of_scrolls['nice_roi_2'] = cv2.imread(os.path.join("D:\\PythonProjects\\HWR_group_5\\data\\lines_nice", 'roi(2).png'), cv2.IMREAD_GRAYSCALE)
+
 list_of_scalers = list(range(1, 5))
 list_of_modes = ["upscale", "downscale", None]
-for i in range(4, 11):
+for i in range(3, 11):
     for scaler in list_of_scalers:
         for mode in list_of_modes:
             character_recognition = CharacterRecognition(
@@ -120,14 +123,14 @@ for i in range(4, 11):
             if mode is None:
                 character_recognition.erode_on_image(
                     "Alef",
-                    scroll_name="P583-Fg006-R-C01-R01-binarized",
+                    scroll_name="nice_roi_2",
                     resize_mode=mode,
                     scaler=1,
                 )
             else:
                 character_recognition.erode_on_image(
                     "Alef",
-                    scroll_name="P583-Fg006-R-C01-R01-binarized",
+                    scroll_name="nice_roi_2",
                     resize_mode=mode,
                     scaler=scaler,
                 )
