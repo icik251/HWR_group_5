@@ -79,10 +79,34 @@ class DataLoader:
 
         return list_of_result
 
+    def get_characters_style_based(self, path: Path, type_img="png"):
+        dict_of_result = {"Archaic": dict(), "Hasmonean": dict(), "Herodian": dict()}
+
+        for style_folder in os.listdir(path):
+            curr_path_style = os.path.join(path, style_folder)
+            for letter_folder in os.listdir(curr_path_style):
+                curr_path_style_letter = os.path.join(curr_path_style, letter_folder)
+                for img in os.listdir(curr_path_style_letter):
+                    if img.endswith(type_img):
+
+                        loaded_img = cv2.imread(
+                            os.path.join(curr_path_style_letter, img), -1
+                        )
+
+                        if letter_folder not in dict_of_result[style_folder].keys():
+                            dict_of_result[style_folder][letter_folder] = [loaded_img]
+                        else:
+                            dict_of_result[style_folder][letter_folder].append(
+                                loaded_img
+                            )
+
+        return dict_of_result
+
 
 # Test the methods
-""" 
+"""
 data_loader = DataLoader()
+
 dict_result = data_loader.get_characters_train_data(
     path="D:\\PythonProjects\\HWR_group_5\\data\\character_set_labeled",
     num_samples=20,
@@ -96,6 +120,12 @@ for k, v in dict_result.items():
 list_of_binarized = data_loader.get_sea_scrolls_images(
     path="D:\\PythonProjects\\HWR_group_5\\data\\dead_sea_scrolls_images"
 )
-
 print(list_of_binarized)
+
+result = data_loader.get_characters_style_based(
+    "D:\\PythonProjects\\HWR_group_5\\data\\style_classification\\characters_for_style_classification"
+)
+
+print(result)
 """
+
