@@ -18,9 +18,8 @@ if __name__ == "__main__":
     optimizer = optim.Adam(mnist_model.get_model_params(), lr=learning_rate)
     criterion = nn.CrossEntropyLoss()
 
-    mnist_model.train(epochs, optimizer, criterion, patience, path_checkpoints)
+    mnist_model.train(epochs, optimizer, criterion, patience, path_checkpoints) 
     """
-
     # Load images for the first time
     data_loader = DataLoader()
     dict_of_results = data_loader.get_characters_style_based(
@@ -29,21 +28,21 @@ if __name__ == "__main__":
 
     # Preprocess images to be same size and split train/test
     style_based_train_data_processing = StyleBasedTrainDataProcessing(dict_of_results)
-    style_based_train_data_processing.normalize_data()
-    style_based_train_data_processing.split_train_test()
-    train_loader, test_loader = style_based_train_data_processing.get_data_loaders()
+    style_based_train_data_processing.normalize_data_padding(save_mode=False)
+    style_based_train_data_processing.split_train_test(train_split=0.8)
+    train_loader, test_loader = style_based_train_data_processing.get_data_loaders(batch_size=100)
 
     # Train and evaluate model
     # Load model with activation func and dropout_rate
-    path_to_checkpoint = "data\\MNIST\\MNIST\\checkpoints\\checkpoint_6.pth"
-    model_obj = Model(path_to_checkpoint)
-    print(model_obj.model)
+    path_to_checkpoint = "data\\MNIST\\MNIST\\checkpoints\\checkpoint_14.pth"
+    model_obj = Model(path_to_checkpoint, freeze_layers=True, seed=42)
+    #print(model_obj.model)
 
     # Params
     path_checkpoints = (
         "D:\\PythonProjects\\HWR_group_5\\data\\style_classification\\checkpoints"
     )
-    patience = 7
+    patience = 20
     epochs = 100
     criterion = nn.CrossEntropyLoss()
     learning_rate = 0.01

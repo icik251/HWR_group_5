@@ -62,7 +62,8 @@ def save_image(image, image_name, path):
     cv2.imwrite(os.path.join(path, "{}.pgm".format(image_name)), image)
 
 
-def multi_acc(y_pred_softmax, y_labels):
+def multi_acc(y_pred, y_labels):
+    y_pred_softmax = torch.log_softmax(y_pred, dim=1)
     _, y_pred_tags = torch.max(y_pred_softmax, dim=1)
 
     correct_pred = (y_pred_tags == y_labels).float()
@@ -70,3 +71,16 @@ def multi_acc(y_pred_softmax, y_labels):
 
     return acc * 100
 
+def set_parameter_requires_grad(model, freeze=True):
+    if freeze:
+        for param in model.parameters():
+            param.requires_grad = False
+    
+    return model
+
+def reverse_black_white(image):
+    image[image == 255] = 1
+    image[image == 0] = 255
+    image[image == 1] = 0
+    
+    return image

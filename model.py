@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import torch
 from datetime import date, datetime
 import os
-from utils import multi_acc
+from utils import multi_acc, set_parameter_requires_grad
 from mnist_model import MNISTResNet
 
 
@@ -54,13 +54,15 @@ class ConvNet(nn.Module):
 
 
 class Model:
-    def __init__(self, model_path, seed=42) -> None:
+    def __init__(self, model_path, freeze_layers=True, seed=42) -> None:
         self.seed = seed
         self.model_path = model_path
         self.checkpoint = None
         self.model = None
 
         self.load_model()
+        if freeze_layers:
+            self.model = set_parameter_requires_grad(self.model, freeze=freeze_layers)
         self.modify_output_layer()
 
         ## Move model to cuda if available
