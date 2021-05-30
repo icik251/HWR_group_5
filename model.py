@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import torch
 from datetime import date, datetime
 import os
-from utils import multi_acc, set_parameter_requires_grad
+from utils import boolean_to_255, multi_acc, set_parameter_requires_grad, save_image
 from mnist_model import MNISTResNet
 
 
@@ -54,9 +54,10 @@ class ConvNet(nn.Module):
 
 
 class Model:
-    def __init__(self, model_path, freeze_layers=True, seed=42) -> None:
+    def __init__(self, model_path_to_load, freeze_layers=True, seed=42) -> None:
         self.seed = seed
-        self.model_path = model_path
+        self.model_path_to_load = model_path_to_load
+        self.idx2style = {0: "Archaic", 1: "Hasmonean", 2: "Herodian"}
         self.checkpoint = None
         self.model = None
 
@@ -70,13 +71,22 @@ class Model:
 
     def load_model(self):
         self.model = MNISTResNet()
-        self.checkpoint = torch.load(self.model_path)
+        self.checkpoint = torch.load(self.model_path_to_load)
         self.model.load_state_dict(self.checkpoint["state_dict"])
 
     def modify_output_layer(self):
         self.model.fc = nn.Sequential(nn.Linear(512, 3))
 
-    def train(self, epochs, optimizer, criterion, train_loader, test_loader, patience, path_checkpoints):
+    def train(
+        self,
+        epochs,
+        optimizer,
+        criterion,
+        train_loader,
+        test_loader,
+        patience,
+        path_checkpoints,
+    ):
 
         torch.manual_seed(self.seed)
         ## CHANGE THIS: dict should be loaded and not created as new if model is loaded to be trained
@@ -87,10 +97,12 @@ class Model:
             "test_loss": list(),
             "convergence_time": list(),
         }
-        
+
         # initialize the early_stopping object
-        early_stopping = EarlyStopping(patience=patience, verbose=True, path=path_checkpoints)
-        
+        early_stopping = EarlyStopping(
+            patience=patience, verbose=True, path=path_checkpoints
+        )
+
         self.model.to(self.device)
         with torch.cuda.device(self.device.index):
             for epoch in range(1, epochs + 1):
@@ -168,12 +180,57 @@ class Model:
                         )
                     )
 
-                # save_model_results(epoch, model, optimizer, dict_of_results, file_name)
-                
-                early_stopping(test_epoch_loss, self.model, epoch, optimizer, dict_of_results)
+                is_saved = early_stopping(
+                    test_epoch_loss, self.model, epoch, optimizer, dict_of_results
+                )
+                if is_saved:
+                    path_to_save = os.path.join(
+                        path_checkpoints, "checkpoint_{}".format(epoch)
+                    )
+                    self.save_test_images(test_loader, criterion, path_to_save)
+
                 if early_stopping.early_stop:
                     print("Early stopping")
                     break
+
+    def save_test_images(self, test_loader, criterion, path_to_save):
+        # VALIDATION
+        with torch.no_grad():
+            test_epoch_loss = 0
+            test_epoch_acc = 0
+
+            self.model.eval()
+            count = 0
+            for X_test_batch, y_test_batch in test_loader:
+                X_test_batch, y_test_batch = (
+                    X_test_batch.to(self.device),
+                    y_test_batch.to(self.device),
+                )
+
+                y_test_pred = self.model(X_test_batch)
+
+                test_loss = criterion(y_test_pred, y_test_batch)
+                test_acc = multi_acc(y_test_pred, y_test_batch)
+                test_epoch_loss += test_loss.item()
+                test_epoch_acc += test_acc.item()
+
+                y_pred_softmax = torch.log_softmax(y_test_pred, dim=1)
+                _, y_pred_tag = torch.max(y_pred_softmax, dim=1)
+
+                y_pred_tag = y_pred_tag.detach().cpu().item()
+                y_test_batch = y_test_batch.detach().cpu().item()
+
+                X_test_batch = torch.squeeze(X_test_batch)
+                sample_numpy = X_test_batch.detach().cpu().numpy()
+                sample_numpy = boolean_to_255(sample_numpy)
+
+                image_name = "{}_Pred_{}_Real_{}".format(
+                    count, self.idx2style[y_pred_tag], self.idx2style[y_test_batch]
+                )
+
+                save_image(sample_numpy, image_name, path_to_save)
+
+                count += 1
 
     def get_model_params(self):
         return self.model.parameters()

@@ -62,6 +62,12 @@ def save_image(image, image_name, path):
     cv2.imwrite(os.path.join(path, "{}.pgm".format(image_name)), image)
 
 
+def load_checkpoint(path_of_model, epoch_checkpoint):
+    return torch.load(
+        os.path.join(path_of_model, "checkpoint_{}.pth".format(epoch_checkpoint))
+    )
+
+
 def multi_acc(y_pred, y_labels):
     y_pred_softmax = torch.log_softmax(y_pred, dim=1)
     _, y_pred_tags = torch.max(y_pred_softmax, dim=1)
@@ -71,16 +77,25 @@ def multi_acc(y_pred, y_labels):
 
     return acc * 100
 
+
 def set_parameter_requires_grad(model, freeze=True):
     if freeze:
         for param in model.parameters():
             param.requires_grad = False
-    
+
     return model
+
 
 def reverse_black_white(image):
     image[image == 255] = 1
     image[image == 0] = 255
     image[image == 1] = 0
-    
+
+    return image
+
+
+def boolean_to_255(image):
+    image[image == 1] = 255
+    image[image == 0] = 0
+
     return image
