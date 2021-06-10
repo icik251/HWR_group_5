@@ -128,4 +128,3 @@ result = data_loader.get_characters_style_based(
 
 print(result)
 """
-
