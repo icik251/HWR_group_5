@@ -55,15 +55,15 @@ import os
 # Create a 50x50 image of the Alef token and save it to disk
 # To get the raw data cast it to a numpy array
 
-char_name = "Lamed"
+list_of_chras = char_map.keys()
 
-for i in range(50, 500, 50):
-    font_size = ImageFont.truetype("data\\Habbakuk.ttf", i)
+for char in list_of_chras:
+    font_size = ImageFont.truetype("data\\Habbakuk.ttf", 50)
 
-    img = create_image(char_name, (i + 8, i + 8), font_size)
+    img = create_image(char, (50 + 8, 50 + 8), font_size)
 
-    if not os.path.exists("data\\generated_characters\\{}".format(char_name)):
-        os.makedirs("data\\generated_characters\\{}".format(char_name))
+    #if not os.path.exists("data\\generated_characters\\{}".format(char)):
+    #    os.makedirs("data\\generated_characters\\{}".format(char))
     img.save(
-        "data\\generated_characters\\{}\\example_lamed_font_{}.png".format(char_name, i)
+        "data\\generated_characters\\{}_font_{}.png".format(char, 50+8)
     )

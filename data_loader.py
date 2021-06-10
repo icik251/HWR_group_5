@@ -58,7 +58,6 @@ class DataLoader:
                 break
 
             # Without converting to binary image
-
             list_of_result.append(
                 cv2.imread(
                     os.path.join(path_to_char_dir, char_image), cv2.IMREAD_GRAYSCALE

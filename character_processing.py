@@ -213,7 +213,7 @@ class CharacterProcessing:
         self.create_alpha_structuring_elements(save_normalized, threshold_mode)
         self.create_final_structuring_element()
 
-"""
+
 data_loader = DataLoader()
 dict_result = data_loader.get_characters_train_data(
     path="D:\\PythonProjects\\HWR_group_5\\data\\character_set_labeled"
@@ -222,4 +222,3 @@ dict_result = data_loader.get_characters_train_data(
 for i in range(1, 11):
     char_processing = CharacterProcessing(copy.deepcopy(dict_result))
     char_processing.build_structuring_elements(save_normalized=True, threshold_mode=i)
-"""
