@@ -54,14 +54,16 @@ def convert_image_to_binary(image, mode="median"):
 
     return int(threshold), image_binary
 
+
 def convert_grayscale(image):
     return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-def save_image(image, image_name, path):
+
+def save_image(image, image_name, path, extension="pgm"):
     if not os.path.exists(path):
         os.makedirs(path)
 
-    cv2.imwrite(os.path.join(path, "{}.pgm".format(image_name)), image)
+    cv2.imwrite(os.path.join(path, "{}.{}".format(image_name, extension)), image)
 
 
 def load_checkpoint(path_of_model, epoch_checkpoint):
@@ -88,7 +90,7 @@ def set_parameter_requires_grad(model, freeze=True):
     return model
 
 
-def reverse_black_white(image):
+def reverse_black_white_keep_values(image):
     image[image == 255] = 1
     image[image == 0] = 255
     image[image == 1] = 0
@@ -99,5 +101,18 @@ def reverse_black_white(image):
 def boolean_to_255(image):
     image[image == 1] = 255
     image[image == 0] = 0
+
+    return image
+
+def pixels_255_to_boolean(image):
+    image[image == 0] = 1
+    image[image == 255] = 0
+
+    return image
+
+
+def reverse_black_white_boolean_values(image):
+    image[image == 0] = 0
+    image[image == 255] = 1
 
     return image
