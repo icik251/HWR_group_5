@@ -5,7 +5,7 @@ import torch
 from datetime import date, datetime
 import os
 from utils import boolean_to_255, multi_acc, set_parameter_requires_grad, save_image
-from mnist_model import MNISTResNet
+# from mnist_model import MNISTResNet
 
 
 class ConvNet(nn.Module):
