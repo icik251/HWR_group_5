@@ -51,6 +51,8 @@ def convert_image_to_binary(image, mode="median"):
     elif isinstance(mode, int):
         (_, image_binary) = cv2.threshold(image, mode, 255, cv2.THRESH_BINARY)
         threshold = mode
+    elif mode == "otsu":
+        (threshold, image_binary) = cv2.threshold(image, 0, 255, cv2.THRESH_OTSU)
 
     return int(threshold), image_binary
 
@@ -103,6 +105,7 @@ def boolean_to_255(image):
     image[image == 0] = 0
 
     return image
+
 
 def pixels_255_to_boolean(image):
     image[image == 0] = 1
