@@ -269,13 +269,14 @@ line_processing = LineProcessing(
 
 ## Our main approach
 
+"""
 line_processing.apply_vertical_projection(binary_treshold="otsu")
 line_processing.segment_characters(window_size=5)
 line_processing.fill_segmented_character()
 line_processing.separate_images_above_width()
 line_processing.remove_non_character_images()
 line_processing.save_segmented_characters()
-
+"""
 
 ## Just contour approach
 """
