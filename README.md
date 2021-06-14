@@ -44,3 +44,20 @@ Output: character style labels (txt)
 ### Image style classification
 Input: character style labels (txt)<br>
 Output: image style label (txt)
+
+## Folders
+### Images
+Output Images
+
+### src
+Source code
+
+### src/character_segmentation
+Code regarding character segmentation
+
+### src/character_recognition
+Code regarding character recognition
+
+### src/style_classification
+Code regarding style classification
+
