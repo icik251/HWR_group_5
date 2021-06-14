@@ -4,6 +4,7 @@ from skimage.morphology import medial_axis, skeletonize
 from matplotlib import pyplot as plt
 from pathlib import Path
 import os
+import copy
 
 import torch
 
@@ -27,6 +28,10 @@ class LineProcessing:
         self.line_width_array = None
         self.skel_line = None
         self.list_of_segmented_characters = list()
+        self.sequence_counter = 0
+        self.pix_idx_start_sequence = 0
+        self.pix_idx_end_sequence = 0
+        self.is_in_character = False
 
     def apply_vertical_projection(self, binary_treshold="median"):
         # skeletonize before vertical projection
@@ -52,7 +57,7 @@ class LineProcessing:
             ):  # Blacken to the bottom from the top point where the column should turn black
                 self.skel_line[i, j] = 0  # black
 
-    def segment_characters(self, window_size=5):
+    def segment_characters(self, borders_pixels=5, window_size=5):
         ## Pipeine:
         # convert line grayscale -> convert line binary otsu method -> skeletonize lee method ->
         # segment chars with window size=5 (add left borders (20 pix) to char on each segmentation) ->
@@ -60,17 +65,47 @@ class LineProcessing:
         # lower than 5% -> TODO: If image is > 150 pixels on width, try to separate it on more characters because
         # most likely they are more chars in the image if it is > 150 width (empirically seen on 4 lines)
 
-        curr_idx = 0
         self.list_of_segmented_characters = list()
         for column_idx in range(len(self.line_width_array) - window_size):
-            if self.check_window(window_size, column_idx):
+            if self.check_if_character_found(column_idx, window_size):
 
-                self.list_of_segmented_characters.append(
-                    self.add_borders_to_image(self.gray_image[:, curr_idx:column_idx])
-                )
+                segmented_img = self.gray_image[
+                    :,
+                    self.pix_idx_start_sequence
+                    - borders_pixels : self.pix_idx_end_sequence
+                    + borders_pixels,
+                ]
+                self.list_of_segmented_characters.append(segmented_img)
+                # plt.imshow(im)
+                # plt.show()
 
-                curr_idx = column_idx
+    def check_if_character_found(self, column_idx, window_size=5, end_zero_window=1):
+        if self.is_in_character:
+            if self.line_width_array[column_idx] == 0:
+                self.sequence_counter += 1
+                if self.sequence_counter == end_zero_window:
+                    self.pix_idx_end_sequence = column_idx
+                    self.is_in_character = False
+                    self.sequence_counter = 0
+                    return True
+        else:
+            if (
+                self.line_width_array[column_idx] == 0
+                or self.line_width_array[column_idx - 1] == 0
+            ):
+                # this "or" makes sure that the start sequence will be refreshed even if the separating
+                # column between two characters is only one with zeros inside.
+                self.pix_idx_start_sequence = column_idx
 
+            elif self.line_width_array[column_idx] >= 1:
+                self.sequence_counter += 1
+                if self.sequence_counter == window_size:
+                    self.is_in_character = True
+                    self.sequence_counter = 0
+
+        return False
+
+    # DEPRECATED
     def add_borders_to_image(self, image):
         padding_adder = torch.nn.ZeroPad2d((20, 0, 0, 0))
         reversed_black_white_sample = reverse_black_white_keep_values(image)
@@ -80,7 +115,8 @@ class LineProcessing:
         return reverse_black_white_keep_values(padded_sample)
 
     def remove_non_character_images(self):
-        for character_image in self.list_of_segmented_characters[:]:
+        list_idx_to_del = list()
+        for idx, character_image in enumerate(self.list_of_segmented_characters[:]):
             number_of_white_pix = np.sum(character_image == 255)
             number_of_black_pix = np.sum(character_image == 0)
             # plt.imshow(character_image)
@@ -91,13 +127,55 @@ class LineProcessing:
                 or character_image.shape[0] < 10
                 or character_image.shape[1] < 10
             ):
-                self.list_of_segmented_characters.remove(character_image)
+                list_idx_to_del.append(idx)
+
+        for idx_to_del in reversed(list_idx_to_del):
+            del self.list_of_segmented_characters[idx_to_del]
 
     def fill_segmented_character(self):
         for idx in range(len(self.list_of_segmented_characters)):
             self.list_of_segmented_characters[idx] = self._fill_ruined_pixels(
                 self.list_of_segmented_characters[idx]
             )
+
+    def cut_top_and_bottom_white_pix(self):
+        list_of_results = list()
+        temp_list_of_segmented_chars = copy.deepcopy(self.list_of_segmented_characters)
+        for i in range(len(temp_list_of_segmented_chars)):
+            list_of_horiz_rows = self.apply_horizontal_projection(
+                temp_list_of_segmented_chars[i]
+            )
+            start_cut = None
+            end_cut = None
+            for idx in range(len(list_of_horiz_rows) - 1):
+                if list_of_horiz_rows[idx] == 0 and list_of_horiz_rows[idx + 1] > 0:
+                    start_cut = idx
+                    break
+
+            # because we iterate till -1
+            if idx + 2 == len(list_of_horiz_rows):
+                start_cut = 0
+
+            for rev_idx in reversed(range(len(list_of_horiz_rows) - 1)):
+
+                if (
+                    list_of_horiz_rows[rev_idx] == 0
+                    and list_of_horiz_rows[rev_idx - 1] > 0
+                ):
+                    end_cut = rev_idx
+                    break
+
+            if rev_idx == 0:
+                end_cut = len(list_of_horiz_rows) - 1
+
+            if start_cut is not None and end_cut is not None:
+                list_of_results.append(
+                    self.list_of_segmented_characters[i][start_cut:end_cut, :]
+                )
+            else:
+                list_of_results.append(self.list_of_segmented_characters[i])
+
+        self.list_of_segmented_characters = list_of_results
 
     def separate_images_above_width(self, width=150):
         list_of_results = list()
@@ -148,6 +226,12 @@ class LineProcessing:
 
         self.list_of_segmented_characters = list_of_results
 
+    def apply_horizontal_projection(self, image):
+        _, binary_image = convert_image_to_binary(image, mode="otsu")
+        reversed_image = reverse_black_white_keep_values(binary_image)
+        horiz_proj_char = np.sum(reversed_image, 1)
+        return horiz_proj_char
+
     def segmentation_logic_2(self):
         thresh, self.binary_image = convert_image_to_binary(
             self.gray_image, mode="otsu"
@@ -172,6 +256,7 @@ class LineProcessing:
             segmented_character_final = self.binary_image[y : y + h, x : x + w]
             self.list_of_segmented_characters.append(segmented_character_final)
 
+    # DEPRECATED
     def check_window(self, window_size, curr_col_idx):
         condition_met = True
         if self.line_width_array[curr_col_idx] == 0:
@@ -264,19 +349,17 @@ class LineProcessing:
 
 
 line_processing = LineProcessing(
-    "D:\\PythonProjects\\HWR_group_5\\data\\TESTING_some_image_name\\line_1\\line_1.png"
+    "D:\\PythonProjects\\HWR_group_5\\data\\TESTING_some_image_name\\line_2\\line_2.png"
 )
 
 ## Our main approach
-
-"""
 line_processing.apply_vertical_projection(binary_treshold="otsu")
 line_processing.segment_characters(window_size=5)
 line_processing.fill_segmented_character()
-line_processing.separate_images_above_width()
+line_processing.separate_images_above_width(width=120)
 line_processing.remove_non_character_images()
+line_processing.cut_top_and_bottom_white_pix()
 line_processing.save_segmented_characters()
-"""
 
 ## Just contour approach
 """
