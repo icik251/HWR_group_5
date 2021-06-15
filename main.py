@@ -9,4 +9,4 @@ debug = False
 
 binarized_path = "../binarized/"
 
-ls.line_segmentation("binarized_path", debug)
+ls.line_segmentation(binarized_path, debug)

@@ -6,14 +6,14 @@ import os
 def line_segmentation(imagepath, debug=False):
     np.set_printoptions(threshold=np.inf)
     path = imagepath
+    if not os.path.exists('images/'):
+        os.makedirs('images/')
+
     for file in os.listdir(path):
         savepath = "images/" + file[:-4] + "/"
-        delpath = "images/" + file[:-4] + "/not_accepted/"
 
         if not os.path.exists(savepath):
             os.makedirs(savepath)
-        if not os.path.exists(delpath):
-            os.makedirs(delpath)
 
         image = cv2.imread(path + file)
         im_height = image.shape[0]
@@ -111,20 +111,25 @@ def line_segmentation(imagepath, debug=False):
             # print(i)
 
             # show ROI
+            if not os.path.exists(savepath + '/line(%d)/' % (i+1)):
+                os.makedirs(savepath + '/line(%d)/' % (i+1))
+            if not os.path.exists(savepath + '/line(%d)/not_accepted' % (i+1)):
+                os.makedirs(savepath + '/line(%d)/not_accepted' % (i+1))
+
             if roi.shape[0] < avg_line_height / 2:
-                cv2.imwrite(delpath + 'line(%d).png' % i, roi)
+                cv2.imwrite(savepath + '/line(%d)/not_accepted/line(%d).png' % (i+1, i+1), roi)
                 cv2.rectangle(deleted, (x, y), (x + w, y + h), (90, 0, 255), 2)
             else:
-                cv2.imwrite(savepath + 'line(%d).png' % i, roi)
+                cv2.imwrite(savepath + '/line(%d)/line(%d).png' % (i+1, i+1), roi)
                 cv2.rectangle(saved, (x, y), (x + w, y + h), (90, 0, 255), 2)
 
         # cv2.imwrite(savepath + 'marked_image.png', saved)
         # cv2.imwrite(delpath + 'ignored_image.png', deleted)
 
-        data = open(delpath + "line_segmentation_debug_data.txt", "w")
-        data.write("avg line height: " + str(avg_line_height))
-        data.write("\n")
-        data.write("median line height: " + str(med_line_height))
-        data.write("\n")
-        data.close()
+        # data = open(savepath + '' + "line_segmentation_debug_data.txt", "w")
+        # data.write("avg line height: " + str(avg_line_height))
+        # data.write("\n")
+        # data.write("median line height: " + str(med_line_height))
+        # data.write("\n")
+        # data.close()
     return
