@@ -2,6 +2,7 @@ import os
 import cv2
 import numpy as np
 import torch
+import copy
 
 
 def crop_white_spaces_image(image):
@@ -26,12 +27,27 @@ def crop_white_spaces_image(image):
     return crop
 
 
+def is_image_rgb(image):
+    if len(image.shape) < 3:
+        return False
+    elif len(image.shape) == 3:
+        return True
+
+
 def crop_white_spaces_image_v2(image):
-    gray = image
+    is_rgb = is_image_rgb(image)
+
+    if is_rgb:
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    else:
+        gray = image
+    
+    to_crop_from = gray
+
     gray = 255 * (gray < 128).astype(np.uint8)  # To invert the text to white
     coords = cv2.findNonZero(gray)  # Find all non-zero points (text)
     x, y, w, h = cv2.boundingRect(coords)  # Find minimum spanning bounding box
-    rect = image[
+    rect = to_crop_from[
         y : y + h, x : x + w
     ]  # Crop the image - note we do this on the original image
 
@@ -59,7 +75,10 @@ def save_image(image, image_name, path):
     if not os.path.exists(path):
         os.makedirs(path)
 
-    cv2.imwrite(os.path.join(path, "{}.pgm".format(image_name)), image)
+    try:
+        cv2.imwrite(os.path.join(path, "{}.pgm".format(image_name)), image)
+    except Exception as e:
+        print(e)
 
 
 def load_checkpoint(path_of_model, epoch_checkpoint):
