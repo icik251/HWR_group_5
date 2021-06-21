@@ -1,9 +1,14 @@
 from os import path
 import os
+
+from PIL import Image
 from data_loader import DataLoader
 from matplotlib import pyplot as plt
 import numpy as np
 from utils import save_image
+import random
+
+random.seed(42)
 
 
 class CharacterAugmentation:
@@ -13,7 +18,7 @@ class CharacterAugmentation:
         self.path_to_save = path_to_save
         self.dict_of_results = {"noise": list(), "rotation": list(), "sheering": list()}
 
-    def noise_addition(self, num_of_augmented=10):
+    def apply_noise(self, num_of_augmented=10):
         size_array_letter = self.image.shape
 
         mean_array_letter = np.mean(self.image)
@@ -36,6 +41,19 @@ class CharacterAugmentation:
             # plt.imshow(noisy_array_clipped)
             # plt.show()
 
+    def apply_rotation(self, boundaries=(-20, 20)):
+        degrees_rotation = random.randint(boundaries[0], boundaries[1])
+
+        img_pil = Image.fromarray(self.image)
+        img_rotate_pil = img_pil.rotate(degrees_rotation)
+        plt.imshow(img_rotate_pil)
+        plt.show()
+
+    def apply_elasticity(
+        self,
+    ):
+        pass
+
     def save_augmented_images(self):
         for key_method, augmented_list in self.dict_of_results.items():
             for idx, agumented_image in enumerate(augmented_list):
@@ -46,7 +64,6 @@ class CharacterAugmentation:
                 )
 
 
-"""
 data_loader = DataLoader()
 dict_of_results = data_loader.get_characters_train_data(
     "D:\\PythonProjects\\HWR_group_5\\data\\character_set_labeled\\", num_samples=10
@@ -57,6 +74,6 @@ char_augmentation = CharacterAugmentation(
     "Alef",
     "D:\\PythonProjects\\HWR_group_5\\data\\character_set_labeled_augmented\\",
 )
-char_augmentation.noise_addition()
-char_augmentation.save_augmented_images()
-"""
+char_augmentation.apply_noise()
+char_augmentation.apply_rotation()
+# char_augmentation.save_augmented_images()
