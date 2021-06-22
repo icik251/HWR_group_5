@@ -57,9 +57,10 @@ class DataLoader:
             if idx == num_samples:
                 break
 
-            list_of_result.append(
-                cv2.imread(os.path.join(path_to_char_dir, char_image), -1)
-            )
+            if not char_image.endswith(".txt"):
+                list_of_result.append(
+                    cv2.imread(os.path.join(path_to_char_dir, char_image), -1)
+                )
 
         return list_of_result
 
@@ -128,4 +129,3 @@ result = data_loader.get_characters_style_based(
 
 print(result)
 """
-

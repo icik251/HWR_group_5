@@ -186,7 +186,10 @@ class DataProcessing:
 
                     # resize method expects (width, height), that's why we reverse them here already
                     if not char_name in dict_of_char_shape.keys():
-                        dict_of_char_shape[char_name] = [[sample.shape[1],sample.shape[0]], 1]
+                        dict_of_char_shape[char_name] = [
+                            [sample.shape[1], sample.shape[0]],
+                            1,
+                        ]
                     else:
                         dict_of_char_shape[char_name][0][0] += sample.shape[1]
                         dict_of_char_shape[char_name][0][1] += sample.shape[0]
@@ -235,13 +238,29 @@ class DataProcessing:
 
                     # resize method expects (width, height), that's why we reverse them here already
                     if not char_name in dict_of_char_shape.keys():
-                        dict_of_char_shape[char_name] = [[cropped_train_sample.shape[1],cropped_train_sample.shape[0]], 1]
+                        dict_of_char_shape[char_name] = [
+                            [
+                                cropped_train_sample.shape[1],
+                                cropped_train_sample.shape[0],
+                            ],
+                            1,
+                        ]
                     else:
                         # resize method expects (width, height), that's why we reverse them here already
-                        if cropped_train_sample.shape[1] < dict_of_char_shape[char_name][0][0]:
-                            dict_of_char_shape[char_name][0][0] = cropped_train_sample.shape[1]
-                        if cropped_train_sample.shape[0] < dict_of_char_shape[char_name][0][1]:
-                            dict_of_char_shape[char_name][0][1] = cropped_train_sample.shape[0]
+                        if (
+                            cropped_train_sample.shape[1]
+                            < dict_of_char_shape[char_name][0][0]
+                        ):
+                            dict_of_char_shape[char_name][0][
+                                0
+                            ] = cropped_train_sample.shape[1]
+                        if (
+                            cropped_train_sample.shape[0]
+                            < dict_of_char_shape[char_name][0][1]
+                        ):
+                            dict_of_char_shape[char_name][0][
+                                1
+                            ] = cropped_train_sample.shape[0]
 
         for style_class, dict_of_letters in self.dict_of_images.items():
             for char_name, dict_partitions_images in dict_of_letters.items():
@@ -253,7 +272,9 @@ class DataProcessing:
                             print(e)
                             cropped_image = sample
 
-                        new_shape = list(np.array(dict_of_char_shape[char_name][0]).astype("uint8"))
+                        new_shape = list(
+                            np.array(dict_of_char_shape[char_name][0]).astype("uint8")
+                        )
                         new_shape = tuple(new_shape)
                         resized_image = resize_image(cropped_image, new_shape)
 
@@ -270,13 +291,13 @@ class DataProcessing:
 """
 data_loader = DataLoader()
 dict_of_results = data_loader.get_characters_train_data(
-    "D:\\PythonProjects\\HWR_group_5\\data\\character_set_labeled\\", num_samples=7
+    "D:\\PythonProjects\\HWR_group_5\\data\\character_set_labeled\\"
 )
-dict_of_results = data_loader.get_characters_style_based(
-    "D:\\PythonProjects\\HWR_group_5\\data\\style_classification\\characters_for_style_classification\\", 
-)
+# dict_of_results = data_loader.get_characters_style_based(
+#    "D:\\PythonProjects\\HWR_group_5\\data\\style_classification\\characters_for_style_classification\\",
+# )
 
-data_processing = DataProcessing(dict_of_results, mode="style")
+data_processing = DataProcessing(dict_of_results, mode="recognition")
 data_processing.split_train_val_test()
 data_processing.normalize_data(normalization_type="smallest")
 """

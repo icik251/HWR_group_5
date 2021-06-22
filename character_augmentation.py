@@ -16,7 +16,7 @@ class CharacterAugmentation:
         self.image = image
         self.char_name = char_name
         self.path_to_save = path_to_save
-        self.dict_of_results = {"noise": list(), "rotation": list(), "sheering": list()}
+        self.list_of_results = list()
 
     def apply_noise(self, num_of_augmented=10):
         size_array_letter = self.image.shape
@@ -36,7 +36,7 @@ class CharacterAugmentation:
             )  # we might get out of bounds due to noise
 
             noisy_array_clipped_int = np.rint(noisy_array_clipped).astype(np.uint8)
-            self.dict_of_results["noise"].append(noisy_array_clipped_int)
+            self.list_of_results.append(noisy_array_clipped_int)
 
             # plt.imshow(noisy_array_clipped)
             # plt.show()
@@ -55,25 +55,28 @@ class CharacterAugmentation:
         pass
 
     def save_augmented_images(self):
-        for key_method, augmented_list in self.dict_of_results.items():
-            for idx, agumented_image in enumerate(augmented_list):
-                save_image(
-                    agumented_image,
-                    str(key_method) + "_" + str(idx),
-                    os.path.join(self.path_to_save, self.char_name),
-                )
+        for idx, agumented_image in enumerate(self.list_of_results):
+            save_image(
+                agumented_image,
+                str(self.char_name) + "_" + str(idx),
+                self.path_to_save,
+            )
 
 
 data_loader = DataLoader()
 dict_of_results = data_loader.get_characters_train_data(
-    "D:\\PythonProjects\\HWR_group_5\\data\\character_set_labeled\\", num_samples=10
+    "data\\processed_data\\character_recognition\\normalized_avg\\train"
 )
 
-char_augmentation = CharacterAugmentation(
-    dict_of_results["Alef"][0],
-    "Alef",
-    "D:\\PythonProjects\\HWR_group_5\\data\\character_set_labeled_augmented\\",
-)
-char_augmentation.apply_noise()
-char_augmentation.apply_rotation()
-# char_augmentation.save_augmented_images()
+for char_name, list_samples in dict_of_results.items():
+    for sample in list_samples:
+            
+        char_augmentation = CharacterAugmentation(
+            sample,
+            char_name,
+            "data\\processed_data\\character_recognition\\normalized_avg\\train_augmented",
+        )
+        
+        char_augmentation.apply_noise()
+        # char_augmentation.apply_rotation()
+        char_augmentation.save_augmented_images()
