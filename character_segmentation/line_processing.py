@@ -37,8 +37,9 @@ class LineProcessing:
         # skeletonize before vertical projection
         self.skeletonize_line(binary_treshold)
 
+        # code for vertial projection from: https://www.tutorialfor.com/blog-282403.htm
         (h, w) = self.binary_image.shape
-        self.line_width_array = [0 for z in range(0, w)]
+        self.line_width_array = [0 for _ in range(0, w)]
 
         # Record the peaks of each column
         for j in range(0, w):  # traverse a column
@@ -61,9 +62,10 @@ class LineProcessing:
         ## Pipeine:
         # convert line grayscale -> convert line binary otsu method -> skeletonize lee method ->
         # segment chars with window size=5 (add left borders (20 pix) to char on each segmentation) ->
-        # fill missing parts of the characters with erosion, dilation -> remove characters with black/white ratio
-        # lower than 5% -> TODO: If image is > 150 pixels on width, try to separate it on more characters because
-        # most likely they are more chars in the image if it is > 150 width (empirically seen on 4 lines)
+        # fill missing parts of the characters with erosion, dilation -> If image is > 120 pixels on width,
+        # try to separate it on more characters because most likely they are more chars in the image if
+        # it is > 120 width (empirically seen on 4 lines) -> remove characters with black/white ratio
+        # lower than 5% -> apply horizontal projection and remove white pixels to center completely the char
 
         self.list_of_segmented_characters = list()
         for column_idx in range(len(self.line_width_array) - window_size):
