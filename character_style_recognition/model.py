@@ -1,4 +1,3 @@
-from torch._C import device
 from early_stopping import EarlyStopping
 import torch.nn as nn
 import torch.nn.functional as F
