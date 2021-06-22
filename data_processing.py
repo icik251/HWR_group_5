@@ -86,10 +86,13 @@ class DataProcessing:
                 self._normalize_style_data_smallest_size(save_mode=save_mode)
 
     def save_used_shape(self, shape, path_to_save):
+        # create path to save
         if not os.path.exists(path_to_save):
             os.makedirs(path_to_save)
 
-        with open(os.path.join(path_to_save, "shape.txt"), "w") as f:
+        with open(
+            os.path.join(path_to_save, "{}_shape.txt".format(self.mode)), "w"
+        ) as f:
             f.write("{},{}".format(shape[0], shape[1]))
         f.close()
 
@@ -130,8 +133,12 @@ class DataProcessing:
                             partition_key,
                             char_name,
                         )
+                        path_to_save_shape = os.path.join(
+                            "data\\resizing_shapes\\normalized_avg",
+                            char_name,
+                        )
                         save_image(resized_image, idx, path_to_save_image)
-                        self.save_used_shape(new_shape, path_to_save_image)
+                        self.save_used_shape(new_shape, path_to_save_shape)
 
     def _normalize_reco_data_smallest_size(self, save_mode=True):
         new_shape = [1000, 1000]
@@ -169,8 +176,12 @@ class DataProcessing:
                             partition_key,
                             char_name,
                         )
+                        path_to_save_shape = os.path.join(
+                            "data\\resizing_shapes\\normalized_smallest",
+                            char_name,
+                        )
                         save_image(resized_image, idx, path_to_save_image)
-                        self.save_used_shape(new_shape, path_to_save_image)
+                        self.save_used_shape(new_shape, path_to_save_shape)
 
     def _normalize_style_data_avg_size(self, save_mode=True):
         dict_of_char_shape = dict()
@@ -221,8 +232,12 @@ class DataProcessing:
                                 style_class,
                                 char_name,
                             )
+                            path_to_save_shape = os.path.join(
+                                "data\\resizing_shapes\\normalized_avg",
+                                char_name,
+                            )
                             save_image(resized_image, idx, path_to_save_image)
-                            self.save_used_shape(new_shape, path_to_save_image)
+                            self.save_used_shape(new_shape, path_to_save_shape)
 
     def _normalize_style_data_smallest_size(self, save_mode=True):
         dict_of_char_shape = dict()
@@ -285,19 +300,23 @@ class DataProcessing:
                                 style_class,
                                 char_name,
                             )
+                            path_to_save_shape = os.path.join(
+                                "data\\resizing_shapes\\normalized_smallest",
+                                char_name,
+                            )
                             save_image(resized_image, idx, path_to_save_image)
-                            self.save_used_shape(new_shape, path_to_save_image)
+                            self.save_used_shape(new_shape, path_to_save_shape)
 
 """
 data_loader = DataLoader()
-dict_of_results = data_loader.get_characters_train_data(
-    "D:\\PythonProjects\\HWR_group_5\\data\\character_set_labeled\\"
-)
-# dict_of_results = data_loader.get_characters_style_based(
-#    "D:\\PythonProjects\\HWR_group_5\\data\\style_classification\\characters_for_style_classification\\",
+# dict_of_results = data_loader.get_characters_train_data(
+#    "D:\\PythonProjects\\HWR_group_5\\data\\character_set_labeled\\"
 # )
+dict_of_results = data_loader.get_characters_style_based(
+    "D:\\PythonProjects\\HWR_group_5\\data\\style_classification\\characters_for_style_classification\\",
+)
 
-data_processing = DataProcessing(dict_of_results, mode="recognition")
+data_processing = DataProcessing(dict_of_results, mode="style")
 data_processing.split_train_val_test()
 data_processing.normalize_data(normalization_type="smallest")
 """
