@@ -2,7 +2,6 @@ import os
 import cv2
 import numpy as np
 import torch
-import copy
 
 
 def crop_white_spaces_image(image):
@@ -41,7 +40,7 @@ def crop_white_spaces_image_v2(image):
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     else:
         gray = image
-    
+
     to_crop_from = gray
 
     gray = 255 * (gray < 128).astype(np.uint8)  # To invert the text to white
@@ -69,6 +68,10 @@ def convert_image_to_binary(image, mode="median"):
         threshold = mode
 
     return int(threshold), image_binary
+
+
+def convert_grayscale(image):
+    return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
 
 def save_image(image, image_name, path):
@@ -105,7 +108,7 @@ def set_parameter_requires_grad(model, freeze=True):
     return model
 
 
-def reverse_black_white(image):
+def reverse_black_white_keep_values(image):
     image[image == 255] = 1
     image[image == 0] = 255
     image[image == 1] = 0
@@ -116,5 +119,19 @@ def reverse_black_white(image):
 def boolean_to_255(image):
     image[image == 1] = 255
     image[image == 0] = 0
+
+    return image
+
+
+def pixels_255_to_boolean(image):
+    image[image == 0] = 1
+    image[image == 255] = 0
+
+    return image
+
+
+def reverse_black_white_boolean_values(image):
+    image[image == 0] = 0
+    image[image == 255] = 1
 
     return image
