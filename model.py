@@ -1,11 +1,15 @@
+from torch._C import device
 from early_stopping import EarlyStopping
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
 from datetime import date, datetime
 import os
-from utils import boolean_to_255, multi_acc, set_parameter_requires_grad, save_image
+from utils import multi_acc, set_parameter_requires_grad, save_image
 from mnist_model import MNISTResNet
+from sklearn.metrics import confusion_matrix
+import seaborn as sn
+import pandas as pd
 
 
 class ConvNet(nn.Module):
@@ -54,28 +58,84 @@ class ConvNet(nn.Module):
 
 
 class Model:
-    def __init__(self, model_path_to_load, freeze_layers=True, seed=42) -> None:
+    def __init__(
+        self, mode="recognition", model_path_to_load=None, freeze_layers=True, seed=42
+    ) -> None:
+        self.mode = mode
         self.seed = seed
         self.model_path_to_load = model_path_to_load
-        self.idx2style = {0: "Archaic", 1: "Hasmonean", 2: "Herodian"}
+        self.style2idx = {"Archaic": 0, "Hasmonean": 1, "Herodian": 2}
+        self.char2idx = {
+            "Alef": 0,
+            "Ayin": 1,
+            "Bet": 2,
+            "Dalet": 3,
+            "Gimel": 4,
+            "He": 5,
+            "Het": 6,
+            "Kaf": 7,
+            "Kaf-final": 8,
+            "Lamed": 9,
+            "Mem": 10,
+            "Mem-medial": 11,
+            "Nun-final": 12,
+            "Nun-medial": 13,
+            "Pe": 14,
+            "Pe-final": 15,
+            "Qof": 16,
+            "Resh": 17,
+            "Samekh": 18,
+            "Shin": 19,
+            "Taw": 20,
+            "Tet": 21,
+            "Tsadi-final": 22,
+            "Tsadi-medial": 23,
+            "Waw": 24,
+            "Yod": 25,
+            "Zayin": 26,
+        }
         self.checkpoint = None
         self.model = None
 
         self.load_model()
         if freeze_layers:
             self.model = set_parameter_requires_grad(self.model, freeze=freeze_layers)
-        self.modify_output_layer()
+
+        if mode == "recognition":
+            self.modify_output_layer(num_classes=27)
+        elif mode == "style":
+            self.modify_output_layer(num_classes=3)
 
         ## Move model to cuda if available
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     def load_model(self):
         self.model = MNISTResNet()
-        self.checkpoint = torch.load(self.model_path_to_load)
-        self.model.load_state_dict(self.checkpoint["state_dict"])
+        if self.model_path_to_load is not None:
+            self.checkpoint = torch.load(self.model_path_to_load)
+            self.model.load_state_dict(self.checkpoint["state_dict"])
 
-    def modify_output_layer(self):
-        self.model.fc = nn.Sequential(nn.Linear(512, 3))
+    def modify_output_layer(self, num_classes):
+        self.model.fc = nn.Sequential(nn.Linear(512, num_classes))
+
+    def save_confusion_matrix(self, list_of_labels, list_of_predictions, path_to_save):
+        if self.mode == "recognition":
+            list_of_classes = self.char2idx.keys()
+        elif self.mode == "style":
+            list_of_classes = self.style2idx.keys()
+
+        # Confusion matrix
+        list_of_labels = list_of_labels.cpu().detach().numpy()
+        list_of_predictions = list_of_predictions.cpu().detach().numpy()
+        conf_mat = confusion_matrix(list_of_labels, list_of_predictions)
+        df_cm = pd.DataFrame(
+            conf_mat,
+            index=[item for item in list_of_classes],
+            columns=[item for item in list_of_classes],
+        )
+        # plt.figure(figsize = (10,7))
+        cm_plot = sn.heatmap(df_cm, annot=True)
+        cm_plot.figure.savefig(path_to_save)
 
     def train(
         self,
@@ -85,6 +145,7 @@ class Model:
         train_loader,
         test_loader,
         patience,
+        delta,
         path_checkpoints,
     ):
 
@@ -100,7 +161,7 @@ class Model:
 
         # initialize the early_stopping object
         early_stopping = EarlyStopping(
-            patience=patience, verbose=True, path=path_checkpoints
+            patience=patience, verbose=True, delta=delta, path=path_checkpoints
         )
 
         self.model.to(self.device)
@@ -135,6 +196,10 @@ class Model:
                     test_epoch_loss = 0
                     test_epoch_acc = 0
 
+                    # Initialize the prediction and label lists(tensors)
+                    pred_list = torch.zeros(0, dtype=torch.long, device=self.device)
+                    label_list = torch.zeros(0, dtype=torch.long, device=self.device)
+
                     self.model.eval()
                     for X_test_batch, y_test_batch in test_loader:
                         X_test_batch, y_test_batch = (
@@ -149,6 +214,13 @@ class Model:
 
                         test_epoch_loss += test_loss.item()
                         test_epoch_acc += test_acc.item()
+
+                        # For creating a confusion matrix
+                        y_pred_softmax = torch.log_softmax(y_test_pred, dim=1)
+                        _, y_pred_tags = torch.max(y_pred_softmax, dim=1)
+                        # Append batch prediction results
+                        pred_list = torch.cat([pred_list, y_pred_tags.view(-1)])
+                        label_list = torch.cat([label_list, y_test_batch.view(-1)])
 
                 epoch_end_time = datetime.now()
 
@@ -185,14 +257,16 @@ class Model:
                 )
                 if is_saved:
                     path_to_save = os.path.join(
-                        path_checkpoints, "checkpoint_{}".format(epoch)
+                        path_checkpoints, "cm_plot_{}.png".format(epoch)
                     )
-                    self.save_test_images(test_loader, criterion, path_to_save)
+                    # self.save_test_images(test_loader, criterion, path_to_save)
+                    self.save_confusion_matrix(label_list, pred_list, path_to_save)
 
                 if early_stopping.early_stop:
                     print("Early stopping")
                     break
 
+    """
     def save_test_images(self, test_loader, criterion, path_to_save):
         # VALIDATION
         with torch.no_grad():
@@ -229,8 +303,8 @@ class Model:
                 )
 
                 save_image(sample_numpy, image_name, path_to_save)
-
                 count += 1
+    """
 
     def get_model_params(self):
         return self.model.parameters()
