@@ -11,38 +11,15 @@ from utils import (
 
 class DataProcessing:
     def __init__(self, dict_of_images, mode="recognition") -> None:
+        """It is used to split and process the data
+
+        Args:
+            dict_of_images ([type]): Images loaded from the data loader class
+            mode (str, optional): Mode of processing, possible: "recognition" and "style". Defaults to "recognition".
+        """
+
         self.dict_of_images = dict_of_images
         self.mode = mode
-        self.style2idx = {"Archaic": 0, "Hasmonean": 1, "Herodian": 2}
-        self.char2idx = {
-            "Alef": 0,
-            "Ayin": 1,
-            "Bet": 2,
-            "Dalet": 3,
-            "Gimel": 4,
-            "He": 5,
-            "Het": 6,
-            "Kaf": 7,
-            "Kaf-final": 8,
-            "Lamed": 9,
-            "Mem": 10,
-            "Mem-medial": 11,
-            "Nun-final": 12,
-            "Nun-medial": 13,
-            "Pe": 14,
-            "Pe-final": 15,
-            "Qof": 16,
-            "Resh": 17,
-            "Samekh": 18,
-            "Shin": 19,
-            "Taw": 20,
-            "Tet": 21,
-            "Tsadi-final": 22,
-            "Tsadi-medial": 23,
-            "Waw": 24,
-            "Yod": 25,
-            "Zayin": 26,
-        }
 
     def split_train_val_test(self, train_split=0.8, val_split=0.1):
         if self.mode == "style":
@@ -73,6 +50,12 @@ class DataProcessing:
                 }
 
     def normalize_data(self, normalization_type="smallest", save_mode=True):
+        """Resize the data
+
+        Args:
+            normalization_type (str, optional): Mode of resizing, possible modes: "smallest" and "average". Defaults to "smallest".
+            save_mode (bool, optional): Save or not the resulted images. Defaults to True.
+        """
         if self.mode == "recognition":
             if normalization_type == "average":
                 self._normalize_reco_data_avg_size(save_mode=save_mode)
@@ -306,6 +289,7 @@ class DataProcessing:
                             )
                             save_image(resized_image, idx, path_to_save_image)
                             self.save_used_shape(new_shape, path_to_save_shape)
+
 
 """
 data_loader = DataLoader()

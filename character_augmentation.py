@@ -70,13 +70,13 @@ dict_of_results = data_loader.get_characters_train_data(
 
 for char_name, list_samples in dict_of_results.items():
     for sample in list_samples:
-            
+
         char_augmentation = CharacterAugmentation(
             sample,
             char_name,
             "data\\processed_data\\character_recognition\\normalized_avg\\train_augmented",
         )
-        
+
         char_augmentation.apply_noise()
         # char_augmentation.apply_rotation()
         char_augmentation.save_augmented_images()
