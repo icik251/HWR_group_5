@@ -10,7 +10,8 @@ from mnist_model import MNISTResNet
 from sklearn.metrics import confusion_matrix
 import seaborn as sn
 import pandas as pd
-
+import matplotlib.pyplot as plt
+plt.rcParams.update({'font.size': 24})
 
 class ConvNet(nn.Module):
     def __init__(self, dropout_rate, activation_function_type):
@@ -133,9 +134,11 @@ class Model:
             index=[item for item in list_of_classes],
             columns=[item for item in list_of_classes],
         )
-        # plt.figure(figsize = (10,7))
+        
+        plt.figure(figsize = (24,21), dpi=100)
         cm_plot = sn.heatmap(df_cm, annot=True)
         cm_plot.figure.savefig(path_to_save)
+        plt.clf()
 
     def train(
         self,

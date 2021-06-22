@@ -139,7 +139,7 @@ class StyleDataPrepTensor:
         # calculating this because we want each batch to contain only one letter and its multiple styles.
         # Because the letter images are resized with respect to their class.
         train_batch_size = 3 * number_of_samples_per_style
-        
+        original_number_of_samples_per_style = number_of_samples_per_style
         # for data augmentation
         transform_train = transforms.Compose(
             [
@@ -162,22 +162,38 @@ class StyleDataPrepTensor:
                 list_of_letter_train_samples,
             ) in dict_of_train_letters.items():
 
-                list_of_letter_train_labels = [self.style2idx[train_style_class]] * len(
-                    list_of_letter_train_samples
-                )
+                #list_of_letter_train_labels = [self.style2idx[train_style_class]] * len(
+                #    list_of_letter_train_samples
+                #)
 
-                if train_letter_key not in dict_of_regrouped_train.keys():
-                    dict_of_regrouped_train[train_letter_key] = (
-                        list_of_letter_train_samples,
-                        list_of_letter_train_labels,
-                    )
-                else:
-                    dict_of_regrouped_train[train_letter_key][
-                        0
-                    ] += list_of_letter_train_samples
-                    dict_of_regrouped_train[train_letter_key][
-                        1
-                    ] += list_of_letter_train_labels
+                for train_sample in list_of_letter_train_samples:
+                    if train_letter_key not in dict_of_regrouped_train.keys():
+                        dict_of_regrouped_train[train_letter_key] = [[train_sample], [self.style2idx[train_style_class]]]
+                    else:
+                        dict_of_regrouped_train[train_letter_key][0].append(train_sample)
+                        dict_of_regrouped_train[train_letter_key][1].append(self.style2idx[train_style_class])
+                    
+                    # check if limit for this style is reached 
+                    if number_of_samples_per_style == len(dict_of_regrouped_train[train_letter_key][0]):
+                        break
+                    
+            number_of_samples_per_style += original_number_of_samples_per_style
+                
+                
+                #if train_letter_key not in dict_of_regrouped_train.keys():
+                #    dict_of_regrouped_train[train_letter_key] = (
+                #        list_of_letter_train_samples,
+                #        list_of_letter_train_labels,
+                #    )
+                #else:
+                #    dict_of_regrouped_train[train_letter_key][
+                #        0
+                #    ] += list_of_letter_train_samples
+                #    dict_of_regrouped_train[train_letter_key][
+                #        1
+                #    ] += list_of_letter_train_labels
+                    
+                
         
         dict_of_regrouped_test = dict()
 
@@ -192,10 +208,10 @@ class StyleDataPrepTensor:
                 )
 
                 if test_letter_key not in dict_of_regrouped_test.keys():
-                    dict_of_regrouped_test[test_letter_key] = (
+                    dict_of_regrouped_test[test_letter_key] = [
                         list_of_letter_test_samples,
                         list_of_letter_test_labels,
-                    )
+                    ]
                 else:
                     dict_of_regrouped_test[test_letter_key][
                         0
