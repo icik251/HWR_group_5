@@ -1,5 +1,5 @@
-from .early_stopping import EarlyStopping
-from .mnist_model import MNISTResNet
+from early_stopping import EarlyStopping
+from mnist_model import MNISTResNet
 
 import torch.nn as nn
 import torch.nn.functional as F
@@ -108,13 +108,20 @@ class Model:
         self.checkpoint = None
         self.model = None
 
-        if is_production:
+        if self.is_production:
             self.load_model_production()
         else:
             self.load_model_training()
 
-        if self.freeze_layers and is_production is False:
-            self.model = set_parameter_requires_grad(self.model, freeze=freeze_layers)
+        if self.freeze_layers and self.is_production is False:
+            self.model = set_parameter_requires_grad(
+                self.model, freeze=self.freeze_layers
+            )
+
+        if self.mode == "recognition" and self.is_production is False:
+            self.modify_output_layer(num_classes=27)
+        elif self.mode == "style" and self.is_production is False:
+            self.modify_output_layer(num_classes=3)
 
         ## Move model to cuda if available
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -124,11 +131,6 @@ class Model:
         if self.model_path_to_load is not None:
             self.checkpoint = torch.load(self.model_path_to_load)
             self.model.load_state_dict(self.checkpoint["state_dict"])
-
-        if self.mode == "recognition" and self.is_production is False:
-            self.modify_output_layer(num_classes=27)
-        elif self.mode == "style" and self.is_production is False:
-            self.modify_output_layer(num_classes=3)
 
     def load_model_production(self):
         if self.model_path_to_load is not None:
@@ -186,7 +188,9 @@ class Model:
             # Get probabilities
             y_pred_softmax = torch.softmax(y_pred, dim=1)
 
-            list_of_predicted_probabilities.append(y_pred_softmax.detach().cpu().numpy())
+            list_of_predicted_probabilities.append(
+                y_pred_softmax.detach().cpu().numpy()
+            )
 
         return list_of_predicted_probabilities
 
@@ -340,6 +344,9 @@ class Model:
                     self.save_confusion_matrix(label_list, pred_list, path_to_save)
 
                 if early_stopping.early_stop:
+                    early_stopping.save_checkpoint(
+                        test_epoch_loss, self.model, epoch, optimizer, dict_of_results
+                    )
                     print("Early stopping")
                     break
 

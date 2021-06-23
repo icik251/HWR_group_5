@@ -1,4 +1,4 @@
-from .early_stopping import EarlyStopping
+from early_stopping import EarlyStopping
 
 from datetime import datetime
 import os

@@ -10,21 +10,31 @@ import random
 
 random.seed(42)
 
+global num_of_rotations_tried
+global num_of_rotations_completed
+
+num_of_rotations_tried = 0
+num_of_rotations_completed = 0
+
 
 class CharacterAugmentation:
-    def __init__(self, image, char_name, path_to_save) -> None:
+    def __init__(
+        self, image, char_name, num_of_augmented, path_to_save, style_class=None
+    ) -> None:
         self.image = image
         self.char_name = char_name
+        self.num_of_augmented = num_of_augmented
         self.path_to_save = path_to_save
         self.list_of_results = list()
+        self.style_class = style_class
 
-    def apply_noise(self, num_of_augmented=10):
+    def apply_noise(self):
         size_array_letter = self.image.shape
 
         mean_array_letter = np.mean(self.image)
         var_array_letter = np.var(self.image)
 
-        for _ in range(num_of_augmented):
+        for _ in range(self.num_of_augmented):
             noisy_array = (
                 self.image
                 + np.sqrt(var_array_letter)
@@ -41,42 +51,312 @@ class CharacterAugmentation:
             # plt.imshow(noisy_array_clipped)
             # plt.show()
 
-    def apply_rotation(self, boundaries=(-20, 20)):
-        degrees_rotation = random.randint(boundaries[0], boundaries[1])
+    def apply_rotation(self, image, boundaries=(-20, 20)):
+        theta = random.randint(boundaries[0], boundaries[1])
 
-        img_pil = Image.fromarray(self.image)
-        img_rotate_pil = img_pil.rotate(degrees_rotation)
-        plt.imshow(img_rotate_pil)
-        plt.show()
+        im = Image.fromarray(image)
+        im_rotate = im.rotate(theta)
+        # plt.imshow(im_rotate)
+        # plt.show()
+        rotated_image = np.array(im_rotate)
+
+        stop_top_list = list()
+        stop_bottom_list = list()
+        stop_left_list = list()
+        stop_right_list = list()
+
+        try:
+
+            for x in range(rotated_image.shape[0]):
+                if rotated_image[x][0] == 255:
+                    stop_left_list.append(x)
+
+            for x in range(rotated_image.shape[0]):
+                if rotated_image[x][rotated_image.shape[1] - 1] == 255:
+                    stop_right_list.append(x)
+
+            for y in range(rotated_image.shape[1]):
+                if rotated_image[0][y] == 255:
+                    stop_top_list.append(y)
+
+            for y in range(rotated_image.shape[1]):
+                if rotated_image[rotated_image.shape[0] - 1][y] == 255:
+                    stop_bottom_list.append(y)
+
+            for i in range(0, min(stop_left_list)):
+                for k in range(0, (min(stop_top_list))):
+                    if (
+                        min(stop_top_list)
+                        - (
+                            i
+                            * (
+                                np.sqrt(
+                                    (1 - np.square(np.cos(theta)))
+                                    / (np.square(np.cos(theta)))
+                                )
+                            )
+                        )
+                    ) >= k - 5:
+
+                        rotated_image[i][k] = 255
+
+            for i in range(0, min(stop_right_list)):
+                for k in range(0, rotated_image.shape[1] - max(stop_top_list)):
+                    if (
+                        rotated_image.shape[1]
+                        - max(stop_top_list)
+                        - (
+                            i
+                            * (
+                                np.sqrt(
+                                    (1 - np.square(np.sin(theta)))
+                                    / (np.square(np.sin(theta)))
+                                )
+                            )
+                        )
+                    ) >= k - 5:
+                        rotated_image[i][rotated_image.shape[1] - k - 1] = 255
+
+            for i in range(0, rotated_image.shape[0] - max(stop_left_list)):
+                for k in range(0, min(stop_bottom_list)):
+                    if (
+                        min(stop_bottom_list)
+                        - (
+                            i
+                            * np.sqrt((1 - np.cos(np.square(theta))) / np.square(theta))
+                        )
+                    ) >= k - 5:
+                        rotated_image[rotated_image.shape[0] - 1 - i][k] = 255
+
+            for i in range(0, rotated_image.shape[0] - max(stop_right_list)):
+                for k in range(0, rotated_image.shape[1] - max(stop_bottom_list)):
+                    if (
+                        rotated_image.shape[1]
+                        - max(stop_top_list)
+                        - (
+                            i
+                            * np.sqrt((1 - np.cos(np.square(theta))) / np.square(theta))
+                        )
+                    ) >= k - 5:
+                        rotated_image[rotated_image.shape[0] - 1 - i][
+                            rotated_image.shape[1] - 1 - k
+                        ] = 255
+
+            # plt.imshow(rotated_image)
+            # plt.show()
+
+        except Exception as e:
+            print(e)
+            return image, 0
+            # plt.imshow(rotated_image)
+            # plt.show()
+
+        return rotated_image, 1
 
     def apply_elasticity(
         self,
     ):
         pass
 
-    def save_augmented_images(self):
-        for idx, agumented_image in enumerate(self.list_of_results):
+    def logic(self):
+        self.apply_noise()
+
+        for idx in range(len(self.list_of_results)):
+            random_bit = random.getrandbits(1)
+            if random_bit:
+                global num_of_rotations_tried
+                num_of_rotations_tried += 1
+                rotated_image, is_succeed = self.apply_rotation(
+                    self.list_of_results[idx]
+                )
+
+                # check if rotation is completed
+                if is_succeed:
+                    global num_of_rotations_completed
+                    num_of_rotations_completed += 1
+
+            else:
+                rotated_image = self.list_of_results[idx]
+
+            self.list_of_results[idx] = rotated_image
+
+    def save_augmented_images(self, list_of_names_idx):
+        if self.style_class is not None:
+            path_to_save = os.path.join(
+                self.path_to_save, self.style_class, str(self.char_name)
+            )
+        else:
+            path_to_save = os.path.join(self.path_to_save, str(self.char_name))
+
+        for agumented_image, idx in zip(self.list_of_results, list_of_names_idx):
             save_image(
                 agumented_image,
-                str(self.char_name) + "_" + str(idx),
-                self.path_to_save,
+                str(idx),
+                path_to_save,
             )
 
 
+"""
+# CHARACTER RECOGNITION
 data_loader = DataLoader()
 dict_of_results = data_loader.get_characters_train_data(
-    "data\\processed_data\\character_recognition\\normalized_avg\\train"
+    "data\\processed_data\\character_recognition\\normalized_smallest\\train"
 )
 
-for char_name, list_samples in dict_of_results.items():
-    for sample in list_samples:
+max_number_of_samples_in_the_set = len(dict_of_results["Alef"])
+num_of_augmented_per_sample = 20
 
+# Replicate samples which don't have the required number
+
+for char_name, list_of_samples in dict_of_results.items():
+    new_list_samples = list_of_samples
+    while len(new_list_samples) < max_number_of_samples_in_the_set:
+        new_list_samples += list_of_samples
+
+    new_list_samples = new_list_samples[:max_number_of_samples_in_the_set]
+    dict_of_results[char_name] = new_list_samples
+
+for char_name, list_samples in dict_of_results.items():
+
+    num_of_augmented_per_class = 0
+    start_idx_name = 0
+
+    for sample in list_samples:
         char_augmentation = CharacterAugmentation(
             sample,
             char_name,
-            "data\\processed_data\\character_recognition\\normalized_avg\\train_augmented",
+            num_of_augmented_per_sample,
+            "data\\processed_data\\character_recognition\\normalized_smallest\\train_augmented",
         )
 
-        char_augmentation.apply_noise()
-        # char_augmentation.apply_rotation()
-        char_augmentation.save_augmented_images()
+        num_of_augmented_per_class += num_of_augmented_per_sample
+
+        list_of_idx_names = list(
+            range(
+                num_of_augmented_per_class - num_of_augmented_per_sample,
+                num_of_augmented_per_class,
+            )
+        )
+
+        char_augmentation.logic()
+        char_augmentation.save_augmented_images(list_of_idx_names)
+
+        if num_of_augmented_per_class % 1000 == 0:
+            print(
+                "Number of augmented {} for character {}".format(
+                    num_of_augmented_per_class, char_name
+                )
+            )
+
+    print(
+        "Augmentation completed for {}. Rotations completed/tried: {}/{}, Number of augmented: {}".format(
+            char_name,
+            num_of_rotations_completed,
+            num_of_rotations_tried,
+            num_of_augmented_per_class,
+        )
+    )
+
+    num_of_rotations_tried = 0
+    num_of_rotations_completed = 0
+"""
+
+
+## STYLE CLASSIFICATION
+data_loader = DataLoader()
+dict_of_results = data_loader.get_characters_style_based(
+    "data\\processed_data\\style_classification\\normalized_avg\\train",
+    type_img="pgm",
+)
+
+dict_of_char_num_of_samples_per_style = dict()
+for style_class, dict_of_letters in dict_of_results.items():
+    for letter_key, samples_list in dict_of_letters.items():
+        if letter_key not in dict_of_char_num_of_samples_per_style.keys():
+            dict_of_char_num_of_samples_per_style[letter_key] = {
+                "Archaic": 0,
+                "Hasmonean": 0,
+                "Herodian": 0,
+            }
+
+        dict_of_char_num_of_samples_per_style[letter_key][style_class] = len(
+            samples_list
+        )
+
+# Set number of samples per class per letter (60 samples per letter before augmenting)
+for (
+    char_key,
+    dict_of_styles_num_samples,
+) in dict_of_char_num_of_samples_per_style.items():
+    for style_key, num_samples in dict_of_styles_num_samples.items():
+        if style_key == "Archaic" and num_samples > 0:
+            dict_of_char_num_of_samples_per_style[char_key][style_key] = 20
+        elif style_key == "Archaic" and num_samples == 0:
+            dict_of_char_num_of_samples_per_style[char_key]["Hasmonean"] = 30
+            dict_of_char_num_of_samples_per_style[char_key]["Herodian"] = 30
+
+
+num_of_augmented_per_sample = 20
+
+# Replicate samples which don't have the required number
+for style_class, dict_of_letters in dict_of_results.items():
+    for letter_key, samples_list in dict_of_letters.items():
+        new_list_samples = samples_list
+        while (
+            len(new_list_samples)
+            < dict_of_char_num_of_samples_per_style[letter_key][style_class]
+        ):
+            new_list_samples += samples_list
+
+        new_list_samples = new_list_samples[
+            : dict_of_char_num_of_samples_per_style[letter_key][style_class]
+        ]
+
+        dict_of_results[style_class][letter_key] = new_list_samples
+
+
+for style_class, dict_of_letters in dict_of_results.items():
+    for char_name, list_samples in dict_of_letters.items():
+
+        num_of_augmented_per_class = 0
+        start_idx_name = 0
+
+        for sample in list_samples:
+            char_augmentation = CharacterAugmentation(
+                sample,
+                char_name,
+                num_of_augmented_per_sample,
+                "data\\processed_data\\style_classification\\normalized_avg\\train_augmented",
+                style_class,
+            )
+
+            num_of_augmented_per_class += num_of_augmented_per_sample
+
+            list_of_idx_names = list(
+                range(
+                    num_of_augmented_per_class - num_of_augmented_per_sample,
+                    num_of_augmented_per_class,
+                )
+            )
+
+            char_augmentation.logic()
+            char_augmentation.save_augmented_images(list_of_idx_names)
+
+            if num_of_augmented_per_class % 100 == 0:
+                print(
+                    "Number of augmented {} for character {}".format(
+                        num_of_augmented_per_class, char_name
+                    )
+                )
+
+        print(
+            "Augmentation completed for {}. Rotations completed/tried: {}/{}, Number of augmented: {}".format(
+                char_name,
+                num_of_rotations_completed,
+                num_of_rotations_tried,
+                num_of_augmented_per_class,
+            )
+        )
+
+        num_of_rotations_tried = 0
+        num_of_rotations_completed = 0
