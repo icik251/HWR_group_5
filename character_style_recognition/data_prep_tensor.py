@@ -162,39 +162,45 @@ class StyleDataPrepTensor:
                 list_of_letter_train_samples,
             ) in dict_of_train_letters.items():
 
-                #list_of_letter_train_labels = [self.style2idx[train_style_class]] * len(
+                # list_of_letter_train_labels = [self.style2idx[train_style_class]] * len(
                 #    list_of_letter_train_samples
-                #)
+                # )
 
                 for train_sample in list_of_letter_train_samples:
                     if train_letter_key not in dict_of_regrouped_train.keys():
-                        dict_of_regrouped_train[train_letter_key] = [[train_sample], [self.style2idx[train_style_class]]]
+                        dict_of_regrouped_train[train_letter_key] = [
+                            [train_sample],
+                            [self.style2idx[train_style_class]],
+                        ]
                     else:
-                        dict_of_regrouped_train[train_letter_key][0].append(train_sample)
-                        dict_of_regrouped_train[train_letter_key][1].append(self.style2idx[train_style_class])
-                    
-                    # check if limit for this style is reached 
-                    if number_of_samples_per_style == len(dict_of_regrouped_train[train_letter_key][0]):
+                        dict_of_regrouped_train[train_letter_key][0].append(
+                            train_sample
+                        )
+                        dict_of_regrouped_train[train_letter_key][1].append(
+                            self.style2idx[train_style_class]
+                        )
+
+                    # check if limit for this style is reached
+                    if number_of_samples_per_style == len(
+                        dict_of_regrouped_train[train_letter_key][0]
+                    ):
                         break
-                    
+
             number_of_samples_per_style += original_number_of_samples_per_style
-                
-                
-                #if train_letter_key not in dict_of_regrouped_train.keys():
-                #    dict_of_regrouped_train[train_letter_key] = (
-                #        list_of_letter_train_samples,
-                #        list_of_letter_train_labels,
-                #    )
-                #else:
-                #    dict_of_regrouped_train[train_letter_key][
-                #        0
-                #    ] += list_of_letter_train_samples
-                #    dict_of_regrouped_train[train_letter_key][
-                #        1
-                #    ] += list_of_letter_train_labels
-                    
-                
-        
+
+            # if train_letter_key not in dict_of_regrouped_train.keys():
+            #    dict_of_regrouped_train[train_letter_key] = (
+            #        list_of_letter_train_samples,
+            #        list_of_letter_train_labels,
+            #    )
+            # else:
+            #    dict_of_regrouped_train[train_letter_key][
+            #        0
+            #    ] += list_of_letter_train_samples
+            #    dict_of_regrouped_train[train_letter_key][
+            #        1
+            #    ] += list_of_letter_train_labels
+
         dict_of_regrouped_test = dict()
 
         for test_style_class, dict_of_test_letters in dict_of_test.items():
@@ -220,21 +226,20 @@ class StyleDataPrepTensor:
                         1
                     ] += list_of_letter_test_labels
 
-
         list_of_train_images = list()
         list_of_train_labels = list()
 
         list_of_test_images = list()
         list_of_test_labels = list()
-        
+
         for train_samples_labels in dict_of_regrouped_train.values():
             list_of_train_images += train_samples_labels[0]
             list_of_train_labels += train_samples_labels[1]
-            
+
         for test_samples_labels in dict_of_regrouped_test.values():
             list_of_test_images += test_samples_labels[0]
             list_of_test_labels += test_samples_labels[1]
-        
+
         train_dataset = CustomDataset(
             list_of_train_images, list_of_train_labels, transform=transform_train
         )

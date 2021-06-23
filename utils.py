@@ -77,10 +77,13 @@ def convert_grayscale(image):
     return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
 
+def load_image(path_to_image):
+    return cv2.imread(path_to_image, -1)
+
+
 def save_image(image, image_name, path):
     if not os.path.exists(path):
         os.makedirs(path)
-
     try:
         cv2.imwrite(os.path.join(path, "{}.pgm".format(image_name)), image)
     except Exception as e:

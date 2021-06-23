@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from skimage.morphology import medial_axis, skeletonize
+from skimage.morphology import skeletonize
 from matplotlib import pyplot as plt
 from pathlib import Path
 import os
@@ -280,7 +280,6 @@ class LineProcessing:
             self.binary_image,
             "line_binary",
             self.path_to_line_folder,
-            extension="png",
         )
 
         """
@@ -290,7 +289,6 @@ class LineProcessing:
             self.binary_image,
             "line_filled_erosion_dilate",
             self.path_to_line_folder,
-            extension="png",
         )
         """
         reversed_line = reverse_black_white_keep_values(self.binary_image)
@@ -306,7 +304,6 @@ class LineProcessing:
             self.skel_line,
             "line_skel",
             self.path_to_line_folder,
-            extension="png",
         )
         # plt.imshow(skel_image)
         # plt.show()
@@ -346,25 +343,28 @@ class LineProcessing:
                 character_image,
                 "char_{}".format(idx),
                 self.path_to_line_folder,
-                extension="png",
             )
 
+    def logic(self, binary_treshold="otsu", window_size=5, width=120):
+        self.apply_vertical_projection(binary_treshold=binary_treshold)
+        self.segment_characters(window_size=window_size)
+        self.fill_segmented_character()
+        self.separate_images_above_width(width=width)
+        self.remove_non_character_images()
+        self.cut_top_and_bottom_white_pix()
+        self.save_segmented_characters()
 
+
+"""
 line_processing = LineProcessing(
     "D:\\PythonProjects\\HWR_group_5\\data\\TESTING_some_image_name\\line_2\\line_2.png"
 )
 
 ## Our main approach
-line_processing.apply_vertical_projection(binary_treshold="otsu")
-line_processing.segment_characters(window_size=5)
-line_processing.fill_segmented_character()
-line_processing.separate_images_above_width(width=120)
-line_processing.remove_non_character_images()
-line_processing.cut_top_and_bottom_white_pix()
-line_processing.save_segmented_characters()
+line_processing.logic()
 
 ## Just contour approach
-"""
+
 line_processing.segmentation_logic_2()
 line_processing.save_segmented_characters()
 """

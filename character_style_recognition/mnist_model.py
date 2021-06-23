@@ -1,3 +1,5 @@
+from .early_stopping import EarlyStopping
+
 from datetime import datetime
 import os
 from torch import nn
@@ -8,7 +10,6 @@ import torchvision.transforms as transforms
 from torchvision.models.resnet import ResNet, BasicBlock, Bottleneck
 import torch.optim as optim
 from utils import multi_acc
-from early_stopping import EarlyStopping
 
 
 class MNISTResNet(ResNet):
@@ -65,10 +66,12 @@ class MNISTModel:
             "test_loss": list(),
             "convergence_time": list(),
         }
-        
+
         # initialize the early_stopping object
-        early_stopping = EarlyStopping(patience=patience, verbose=True, path=path_checkpoints)
-    
+        early_stopping = EarlyStopping(
+            patience=patience, verbose=True, path=path_checkpoints
+        )
+
         self.model.to(self.device)
         with torch.cuda.device(self.device.index):
             for epoch in range(1, epochs + 1):
@@ -146,7 +149,9 @@ class MNISTModel:
                         )
                     )
 
-                early_stopping(test_epoch_loss, self.model, epoch, optimizer, dict_of_results)
+                early_stopping(
+                    test_epoch_loss, self.model, epoch, optimizer, dict_of_results
+                )
                 if early_stopping.early_stop:
                     print("Early stopping")
                     break

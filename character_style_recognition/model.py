@@ -1,16 +1,19 @@
-from early_stopping import EarlyStopping
+from .early_stopping import EarlyStopping
+from .mnist_model import MNISTResNet
+
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
 from datetime import date, datetime
 import os
 from utils import multi_acc, set_parameter_requires_grad, save_image
-from mnist_model import MNISTResNet
 from sklearn.metrics import confusion_matrix
 import seaborn as sn
 import pandas as pd
 import matplotlib.pyplot as plt
-plt.rcParams.update({'font.size': 24})
+
+plt.rcParams.update({"font.size": 24})
+
 
 class ConvNet(nn.Module):
     def __init__(self, dropout_rate, activation_function_type):
@@ -59,11 +62,18 @@ class ConvNet(nn.Module):
 
 class Model:
     def __init__(
-        self, mode="recognition", model_path_to_load=None, freeze_layers=True, seed=42
+        self,
+        mode="recognition",
+        model_path_to_load=None,
+        freeze_layers=True,
+        seed=42,
+        is_production=False,
     ) -> None:
         self.mode = mode
         self.seed = seed
         self.model_path_to_load = model_path_to_load
+        self.is_production = is_production
+        self.freeze_layers = freeze_layers
         self.style2idx = {"Archaic": 0, "Hasmonean": 1, "Herodian": 2}
         self.char2idx = {
             "Alef": 0,
@@ -94,26 +104,91 @@ class Model:
             "Yod": 25,
             "Zayin": 26,
         }
+
         self.checkpoint = None
         self.model = None
 
-        self.load_model()
-        if freeze_layers:
-            self.model = set_parameter_requires_grad(self.model, freeze=freeze_layers)
+        if is_production:
+            self.load_model_production()
+        else:
+            self.load_model_training()
 
-        if mode == "recognition":
-            self.modify_output_layer(num_classes=27)
-        elif mode == "style":
-            self.modify_output_layer(num_classes=3)
+        if self.freeze_layers and is_production is False:
+            self.model = set_parameter_requires_grad(self.model, freeze=freeze_layers)
 
         ## Move model to cuda if available
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    def load_model(self):
+    def load_model_training(self):
         self.model = MNISTResNet()
         if self.model_path_to_load is not None:
             self.checkpoint = torch.load(self.model_path_to_load)
             self.model.load_state_dict(self.checkpoint["state_dict"])
+
+        if self.mode == "recognition" and self.is_production is False:
+            self.modify_output_layer(num_classes=27)
+        elif self.mode == "style" and self.is_production is False:
+            self.modify_output_layer(num_classes=3)
+
+    def load_model_production(self):
+        if self.model_path_to_load is not None:
+            if self.mode == "recognition":
+                self.model = MNISTResNet(num_classes=27)
+            elif self.mode == "style":
+                self.model = MNISTResNet(num_classes=3)
+
+            self.checkpoint = torch.load(self.model_path_to_load)
+            state_dict = self.checkpoint["state_dict"]
+
+            # Change name of last layer state dict key as it is not recognized
+            # Because of the changing of the last layer of the network during training
+            for key in list(state_dict.keys()):
+                state_dict[
+                    key.replace("fc.0.weight", "fc.weight").replace(
+                        "fc.0.bias", "fc.bias"
+                    )
+                ] = state_dict.pop(key)
+
+            self.model.load_state_dict(state_dict)
+            self.model.eval()
+
+            # print(self.model.fc.weight)
+            # print("------------")
+
+    def recognize_character(self, production_dataloader):
+        list_of_predicted_labels = list()
+        self.model.to(self.device)
+        for X_batch, _ in production_dataloader:
+
+            X_batch = X_batch.to(self.device)
+            y_pred = self.model(X_batch)
+
+            # Get labels
+            y_pred_softmax = torch.log_softmax(y_pred, dim=1)
+            _, y_pred_tags = torch.max(y_pred_softmax, dim=1)
+
+            pred_label = list(self.char2idx.keys())[
+                list(self.char2idx.values()).index(y_pred_tags.item())
+            ]
+
+            list_of_predicted_labels.append(pred_label)
+
+        return list_of_predicted_labels
+
+    def classify_style(self, production_dataloader):
+        list_of_predicted_probabilities = list()
+        self.model.to(self.device)
+        for X_batch, _ in production_dataloader:
+
+            X_batch = X_batch.to(self.device)
+            y_pred = self.model(X_batch)
+
+            # Get probabilities
+            y_pred_softmax = torch.softmax(y_pred, dim=1)
+
+            list_of_predicted_probabilities.append(y_pred_softmax.detach().cpu().numpy())
+
+        return list_of_predicted_probabilities
 
     def modify_output_layer(self, num_classes):
         self.model.fc = nn.Sequential(nn.Linear(512, num_classes))
@@ -133,8 +208,8 @@ class Model:
             index=[item for item in list_of_classes],
             columns=[item for item in list_of_classes],
         )
-        
-        plt.figure(figsize = (24,21), dpi=100)
+
+        plt.figure(figsize=(24, 21), dpi=100)
         cm_plot = sn.heatmap(df_cm, annot=True)
         cm_plot.figure.savefig(path_to_save)
         plt.clf()
@@ -310,16 +385,3 @@ class Model:
 
     def get_model_params(self):
         return self.model.parameters()
-
-    def save_model_results(epoch, model, optimizer, dict_of_results, file_name):
-        state = {
-            "epoch": epoch,
-            "state_dict": model.state_dict(),
-            "optimizer": optimizer.state_dict(),
-            "results": dict_of_results,
-        }
-
-        # Check if folder structure is created, if not - create it
-        if not os.path.isdir("Results"):
-            os.makedirs("Results")
-        torch.save(state, os.path.join("Results", file_name + ".pth"))

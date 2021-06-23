@@ -73,6 +73,7 @@ class CharacterProcessing:
         return self.resized_image
 
 
+"""
 RESIZE_MODE = "smallest"
 
 for line_folder in os.listdir("data\\TESTING_some_image_name\\"):
@@ -103,3 +104,4 @@ for line_folder in os.listdir("data\\TESTING_some_image_name\\"):
                     path_to_image, resize_mode=RESIZE_MODE, model_mode="style"
                 )
                 character_processing.resize_image()
+"""

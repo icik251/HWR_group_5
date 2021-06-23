@@ -67,6 +67,9 @@ def convert_image_to_binary(image, mode="median"):
         (_, image_binary) = cv2.threshold(image, mode, 255, cv2.THRESH_BINARY)
         threshold = mode
 
+    elif mode == "otsu":
+        (threshold, image_binary) = cv2.threshold(image, 0, 255, cv2.THRESH_OTSU)
+
     return int(threshold), image_binary
 
 
