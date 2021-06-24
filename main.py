@@ -2,7 +2,7 @@ import numpy as np
 from utils import load_image, save_image
 from character_segmentation.line_processing import LineProcessing
 from data_preparation.character_processing import CharacterProcessing
-from character_style_recognition.model import Model
+from model import Model
 from character_style_recognition.data_prep_tensor import (
     RecognitionDataPrepTensor,
     StyleDataPrepTensor,
@@ -31,14 +31,14 @@ if __name__ == "__main__":
 
     reco_model_obj = Model(
         mode="recognition",
-        model_path_to_load="data\\models\\character_recognition\\norm_smallest_freeze_False\\checkpoint_2.pth",
+        model_path_to_load="data\\models\\character_recognition\\norm_smallest_freeze_False\\checkpoint_optimal.pth",
         freeze_layers=False,
         is_production=True,
     )
 
     style_model_obj = Model(
         mode="style",
-        model_path_to_load="data\\models\\style_classification\\norm_smallest_freeze_False\\checkpoint_7.pth",
+        model_path_to_load="data\\models\\style_classification\\norm_smallest_freeze_False\\checkpoint_optimal.pth",
         freeze_layers=False,
         is_production=True,
     )
@@ -164,6 +164,7 @@ if __name__ == "__main__":
                 list_of_image_probabilities += list_of_style_probability_for_line
         
         # Naive Bayes and get style name
+        print(list_of_image_probabilities)
         classified_style_idx = np.argmax(sum(list(map(lambda x: np.log(x), list_of_image_probabilities))))
         classified_style_label = list(style_model_obj.style2idx.keys())[
                     list(style_model_obj.style2idx.values()).index(classified_style_idx)
