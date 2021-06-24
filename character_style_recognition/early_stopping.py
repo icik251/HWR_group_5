@@ -1,6 +1,8 @@
 import os
 import numpy as np
 import torch
+
+
 class EarlyStopping:
     """Early stops the training if validation loss doesn't improve after a given patience."""
 
@@ -70,5 +72,13 @@ class EarlyStopping:
         if not os.path.isdir(self.path):
             os.makedirs(self.path)
 
-        torch.save(state, os.path.join(self.path, "checkpoint_{}.pth".format(epoch)))
-        self.val_loss_min = val_loss
+        if self.early_stop:
+            torch.save(
+                state, os.path.join(self.path, "checkpoint_ea.pth".format(epoch))
+            )
+            self.val_loss_min = val_loss
+        else:
+            torch.save(
+                state, os.path.join(self.path, "checkpoint_optimal.pth".format(epoch))
+            )
+            self.val_loss_min = val_loss

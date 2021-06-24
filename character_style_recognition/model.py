@@ -212,11 +212,12 @@ class Model:
             index=[item for item in list_of_classes],
             columns=[item for item in list_of_classes],
         )
-
-        plt.figure(figsize=(24, 21), dpi=100)
+        
+        plt.figure(figsize=(24, 21), dpi=25)
         cm_plot = sn.heatmap(df_cm, annot=True)
         cm_plot.figure.savefig(path_to_save)
         plt.clf()
+        plt.close()
 
     def train(
         self,
@@ -334,13 +335,15 @@ class Model:
                     )
 
                 is_saved = early_stopping(
-                    test_epoch_loss, self.model, epoch, optimizer, dict_of_results
+                    round(test_epoch_loss / len(test_loader), 3),
+                    self.model,
+                    epoch,
+                    optimizer,
+                    dict_of_results,
                 )
-                if is_saved:
-                    path_to_save = os.path.join(
-                        path_checkpoints, "cm_plot_{}.png".format(epoch)
-                    )
-                    # self.save_test_images(test_loader, criterion, path_to_save)
+                if is_saved and not early_stopping.early_stop:
+                    path_to_save = os.path.join(path_checkpoints, "cm_plot.png")
+
                     self.save_confusion_matrix(label_list, pred_list, path_to_save)
 
                 if early_stopping.early_stop:

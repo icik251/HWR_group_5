@@ -7,8 +7,10 @@ from torch import nn
 import torch.optim as optim
 import copy
 
+# Pipeline doing all variations of experiments for both style classification and character recognition
 
 if __name__ == "__main__":
+    # MNIST Training (don't uncomment, already trained)
     """
     seed = 42
     mnist_model = MNISTModel(root_path=".\\data\\MNIST", seed=seed)
@@ -24,12 +26,13 @@ if __name__ == "__main__":
     mnist_model.train(epochs, optimizer, criterion, patience, path_checkpoints)
     """
 
+    """
     # RECOGNITION PIPELINE to try different params
     # Load preprocessed images for recognition, smallest method
-    """
+    
     # Pipeline for different experiments
     list_of_size_normalizations = ["average", "smallest"]
-    list_of_batch_sizes = [128, 256, 512]
+    list_of_batch_sizes = [128, 256]
     list_of_freeze_layers = [True, False]
     list_of_augmented = ["train_augmented", "train"]
     list_of_mnist = [True, False]
@@ -65,29 +68,12 @@ if __name__ == "__main__":
                                 if augmented_dir == "train":
                                     batch_size = 32
                                     
-                                reco_data_prep = RecognitionDataPrepTensor()
-                                (
-                                    train_loader,
-                                    test_loader,
-                                ) = reco_data_prep.get_data_loaders_training(
-                                    dict_of_train=copy.deepcopy(dict_of_reco_train),
-                                    dict_of_test=copy.deepcopy(dict_of_reco_val),
-                                    train_batch_size=batch_size,
-                                )
-
                                 if is_mnist:
                                     path_to_checkpoint = "data\\MNIST\\MNIST\\checkpoints\\checkpoint_14.pth"
                                 else:
                                     path_to_checkpoint = None
                                     freeze_bool = False
-
-                                model_obj = Model(
-                                    mode="recognition",
-                                    model_path_to_load=path_to_checkpoint,
-                                    freeze_layers=freeze_bool,
-                                    seed=42,
-                                )
-
+                                    
                                 # Path to save model and everything realated to it
                                 model_folder = "norm_{}_batch_{}_augmented_{}_mnist_{}_freeze_{}_optim_{}_lr_{}".format(
                                     normalization_type,
@@ -102,6 +88,28 @@ if __name__ == "__main__":
                                 path_to_save_model = os.path.join(
                                     "data\\models\\character_recognition",
                                     model_folder,
+                                )
+                                
+                                # Check if variation of parameters for model is trained already
+                                if os.path.exists(path_to_save_model):
+                                    print("Model {} already trained. Skipping...".format(model_folder))
+                                    break
+                                    
+                                reco_data_prep = RecognitionDataPrepTensor()
+                                (
+                                    train_loader,
+                                    test_loader,
+                                ) = reco_data_prep.get_data_loaders_training(
+                                    dict_of_train=copy.deepcopy(dict_of_reco_train),
+                                    dict_of_test=copy.deepcopy(dict_of_reco_val),
+                                    train_batch_size=batch_size,
+                                )
+
+                                model_obj = Model(
+                                    mode="recognition",
+                                    model_path_to_load=path_to_checkpoint,
+                                    freeze_layers=freeze_bool,
+                                    seed=42,
                                 )
 
                                 patience = 15
@@ -129,15 +137,15 @@ if __name__ == "__main__":
                                     delta,
                                     path_to_save_model,
                                 )
-    """
     
+    """
     # STYLE CLASSIFICATION
     # SYLE CLASSIFICATION to try different params
     # Load preprocessed images for recognition, smallest method
 
     # Pipeline for different experiments
     list_of_size_normalizations = ["average", "smallest"]
-    list_of_batch_sizes = [100, 300, 600]
+    list_of_batch_sizes = [100, 300]
     list_of_freeze_layers = [True, False]
     list_of_augmented = ["train_augmented"]
     list_of_mnist = [True, False]
@@ -147,7 +155,6 @@ if __name__ == "__main__":
     for normalization_type in list_of_size_normalizations:
         for augmented_dir in list_of_augmented:
 
-            normalization_type = "average"
             if normalization_type == "average":
                 normalization_type = "avg"
 
@@ -168,6 +175,33 @@ if __name__ == "__main__":
                     for is_mnist in list_of_mnist:
                         for optimizer_name in list_of_optimizers:
                             for learning_rate in list_of_learning_rates:
+                                
+                                if is_mnist:
+                                    path_to_checkpoint = "data\\MNIST\\MNIST\\checkpoints\\checkpoint_14.pth"
+                                else:
+                                    path_to_checkpoint = None
+                                    freeze_bool = False
+                                
+                                # Path to save model and everything realated to it
+                                model_folder = "norm_{}_batch_{}_augmented_{}_mnist_{}_freeze_{}_optim_{}_lr_{}".format(
+                                    normalization_type,
+                                    batch_size,
+                                    augmented_dir,
+                                    is_mnist,
+                                    freeze_bool,
+                                    optimizer_name,
+                                    learning_rate,
+                                )
+                                
+                                path_to_save_model = os.path.join(
+                                    "data\\models\\style_classification",
+                                    model_folder,
+                                )
+                                
+                                # Check if variation of parameters for model is trained already
+                                if os.path.exists(path_to_save_model):
+                                    print("Model {} already trained. Skipping...".format(model_folder))
+                                    break
                                     
                                 style_data_prep = StyleDataPrepTensor()
                                 (
@@ -179,33 +213,11 @@ if __name__ == "__main__":
                                     train_batch_size=batch_size,
                                 )
 
-                                if is_mnist:
-                                    path_to_checkpoint = "data\\MNIST\\MNIST\\checkpoints\\checkpoint_14.pth"
-                                else:
-                                    path_to_checkpoint = None
-                                    freeze_bool = False
-
                                 model_obj = Model(
                                     mode="style",
                                     model_path_to_load=path_to_checkpoint,
                                     freeze_layers=freeze_bool,
                                     seed=42,
-                                )
-
-                                # Path to save model and everything realated to it
-                                model_folder = "norm_{}_batch_{}_augmented_{}_mnist_{}_freeze_{}_optim_{}_lr_{}".format(
-                                    normalization_type,
-                                    batch_size,
-                                    augmented_dir,
-                                    is_mnist,
-                                    freeze_bool,
-                                    optimizer_name,
-                                    learning_rate,
-                                )
-
-                                path_to_save_model = os.path.join(
-                                    "data\\models\\style_classification",
-                                    model_folder,
                                 )
 
                                 patience = 15
