@@ -12,7 +12,7 @@ import os
 
 if __name__ == "__main__":
 
-    path_to_real_scrolls = "D:\\uni\\handwritingrecognition\\project\\HWR_group_5\\data\\sample-test-2021\\"
+    path_to_real_scrolls = "data\\sample-test-2021\\"
 
     line_segmentation(path_to_real_scrolls)
     # Logic for extracing the lines and save them in a structure as follows:
@@ -55,10 +55,11 @@ if __name__ == "__main__":
     for image_dir in os.listdir(mock_images_dir):
         # Process each line of the current image and extract characters
         for line_dir in os.listdir(os.path.join(mock_images_dir, image_dir)):
-            if line_dir.split("_")[0] == "line":
-                for image_in_dir_line in os.listdir(
-                    os.path.join(mock_images_dir, image_dir, line_dir)
-                ):
+            images_in_line_dir_iter = os.listdir(
+                os.path.join(mock_images_dir, image_dir, line_dir)
+            )
+            if line_dir.split("_")[0] == "line" and len(images_in_line_dir_iter) > 0:
+                for image_in_dir_line in images_in_line_dir_iter:
                     if image_in_dir_line.split("_")[
                         0
                     ] == "line" and image_in_dir_line.endswith(".png"):
@@ -79,9 +80,7 @@ if __name__ == "__main__":
                 list_of_original_character_images = list()
                 list_of_original_char_images_names = list()
 
-                for image_in_dir_line in os.listdir(
-                    os.path.join(mock_images_dir, image_dir, line_dir)
-                ):
+                for image_in_dir_line in images_in_line_dir_iter:
                     if image_in_dir_line.split("_")[0] == "char":
                         path_to_char_image = os.path.join(
                             mock_images_dir, image_dir, line_dir, image_in_dir_line
@@ -135,7 +134,7 @@ if __name__ == "__main__":
         list_of_image_probabilities = list()
 
         for line_dir in os.listdir(os.path.join(mock_images_dir, image_dir)):
-            if line_dir.split("_")[0] == "line":
+            if line_dir.split("_")[0] == "line" and len(images_in_line_dir_iter) > 0:
 
                 list_of_resized_characters_to_style_classify = list()
 
