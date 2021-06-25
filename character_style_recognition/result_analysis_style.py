@@ -1,16 +1,7 @@
-# Pipeline for different experiments RECOGNITION
-list_of_size_normalizations = ["average", "smallest"]
-list_of_batch_sizes = [100, 300]
-list_of_freeze_layers = [True, False]
-list_of_augmented = ["train_augmented"]
-list_of_mnist = [True, False]
-list_of_optimizers = ["Adam", "SGD"]
-list_of_learning_rates = [0.01, 0.001]
-
 import os
 import torch
 
-base_path = "data\\models\\style_classification"
+base_path = "data\\models\\style_classification_beta"
 dict_of_results_checkpoints = dict()
 
 for model_dir in os.listdir(base_path):
@@ -73,5 +64,5 @@ for k, v in dict_of_results_checkpoints.items():
     # plt.subplot(epochs, v['train_acc'], label='Train')
 
     # plt.show()
-    plt.savefig("data\\plots\\style_classification\\{}.png".format(k))
+    plt.savefig("data\\plots\\style_classification_beta\\{}.png".format(k))
     plt.cla()

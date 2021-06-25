@@ -197,7 +197,7 @@ class CharacterAugmentation:
 
 
 """
-# CHARACTER RECOGNITION
+# CHARACTER RECOGNITION train for hyper-parameter tuning
 data_loader = DataLoader()
 dict_of_results = data_loader.get_characters_train_data(
     "data\\processed_data\\character_recognition\\normalized_smallest\\train"
@@ -259,10 +259,34 @@ for char_name, list_samples in dict_of_results.items():
 
     num_of_rotations_tried = 0
     num_of_rotations_completed = 0
+    """
+
+# CHARACTER RECOGNITION concat train and val without data augmentation as this is the final model
+data_loader = DataLoader()
+dict_of_results_train = data_loader.get_characters_train_data(
+    "data\\processed_data\\character_recognition\\normalized_smallest\\train"
+)
+dict_of_results_val = data_loader.get_characters_train_data(
+    "data\\processed_data\\character_recognition\\normalized_smallest\\val"
+)
+
+base_path = "data\\processed_data\\character_recognition\\normalized_smallest\\train_val_augmented"
+
+# Merge train and val dicts before replicating
+for letter_key, samples_list in dict_of_results_train.items():
+    if letter_key in dict_of_results_val.keys():
+        dict_of_results_train[letter_key] += dict_of_results_val[letter_key]
+            
+for letter_key, samples_list in dict_of_results_train.items():
+    if not os.path.exists(os.path.join(base_path, letter_key)):
+        os.makedirs(os.path.join(base_path, letter_key))
+    
+    for idx, sample in enumerate(samples_list):
+        save_image(sample, idx, os.path.join(base_path, letter_key))
+
 """
+## STYLE CLASSIFICATION train split for hyperparameter tuning
 
-
-## STYLE CLASSIFICATION
 data_loader = DataLoader()
 dict_of_results = data_loader.get_characters_style_based(
     "data\\processed_data\\style_classification\\normalized_avg\\train",
@@ -360,3 +384,144 @@ for style_class, dict_of_letters in dict_of_results.items():
 
         num_of_rotations_tried = 0
         num_of_rotations_completed = 0
+        """
+
+"""
+## STYLE CLASSIFICATION train-val training set combination for final model training
+data_loader = DataLoader()
+dict_of_results_train = data_loader.get_characters_style_based(
+    "data\\processed_data\\style_classification\\normalized_avg\\train",
+    type_img="pgm",
+)
+
+dict_of_results_val = data_loader.get_characters_style_based(
+    "data\\processed_data\\style_classification\\normalized_avg\\val",
+    type_img="pgm",
+)
+
+
+dict_of_char_num_of_samples_per_style = dict()
+for style_class, dict_of_letters in dict_of_results_train.items():
+    for letter_key, samples_list in dict_of_letters.items():
+        if letter_key not in dict_of_char_num_of_samples_per_style.keys():
+            dict_of_char_num_of_samples_per_style[letter_key] = {
+                "Archaic": 0,
+                "Hasmonean": 0,
+                "Herodian": 0,
+            }
+
+        dict_of_char_num_of_samples_per_style[letter_key][style_class] = len(
+            samples_list
+        )
+
+        if letter_key in dict_of_results_val[style_class].keys():
+            dict_of_char_num_of_samples_per_style[letter_key][style_class] += len(
+                dict_of_results_val[style_class][letter_key]
+            )
+
+# Set number of samples per class per letter (66 samples per letter before augmenting)
+for (
+    char_key,
+    dict_of_styles_num_samples,
+) in dict_of_char_num_of_samples_per_style.items():
+    for style_key, num_samples in dict_of_styles_num_samples.items():
+        if style_key == "Archaic" and num_samples > 0:
+            dict_of_char_num_of_samples_per_style[char_key][style_key] = 22
+        elif style_key == "Archaic" and num_samples == 0:
+            dict_of_char_num_of_samples_per_style[char_key]["Hasmonean"] = 33
+            dict_of_char_num_of_samples_per_style[char_key]["Herodian"] = 33
+
+
+num_of_augmented_per_sample = 20
+
+# Merge train and val dicts before replicating
+for style_class, dict_of_letters in dict_of_results_train.items():
+    for letter_key, samples_list in dict_of_letters.items():
+        if letter_key in dict_of_results_val[style_class].keys():
+            dict_of_letters[letter_key] += dict_of_results_val[style_class][letter_key]
+            dict_of_results_train[style_class] = dict_of_letters
+        
+# Replicate samples which don't have the required number
+for style_class, dict_of_letters in dict_of_results_train.items():
+    for letter_key, samples_list in dict_of_letters.items():
+        new_list_samples = samples_list
+        while (
+            len(new_list_samples)
+            < dict_of_char_num_of_samples_per_style[letter_key][style_class]
+        ):
+            new_list_samples += samples_list
+
+        new_list_samples = new_list_samples[
+            : dict_of_char_num_of_samples_per_style[letter_key][style_class]
+        ]
+
+        dict_of_results_train[style_class][letter_key] = new_list_samples
+
+
+for style_class, dict_of_letters in dict_of_results_train.items():
+    for char_name, list_samples in dict_of_letters.items():
+
+        num_of_augmented_per_class = 0
+        start_idx_name = 0
+
+        for sample in list_samples:
+            char_augmentation = CharacterAugmentation(
+                sample,
+                char_name,
+                num_of_augmented_per_sample,
+                "data\\processed_data\\style_classification\\normalized_avg\\train_val_augmented",
+                style_class,
+            )
+
+            num_of_augmented_per_class += num_of_augmented_per_sample
+
+            list_of_idx_names = list(
+                range(
+                    num_of_augmented_per_class - num_of_augmented_per_sample,
+                    num_of_augmented_per_class,
+                )
+            )
+
+            char_augmentation.logic()
+            char_augmentation.save_augmented_images(list_of_idx_names)
+
+            if num_of_augmented_per_class % 100 == 0:
+                print(
+                    "Number of augmented {} for character {}".format(
+                        num_of_augmented_per_class, char_name
+                    )
+                )
+
+        print(
+            "Augmentation completed for {}. Rotations completed/tried: {}/{}, Number of augmented: {}".format(
+                char_name,
+                num_of_rotations_completed,
+                num_of_rotations_tried,
+                num_of_augmented_per_class,
+            )
+        )
+
+        num_of_rotations_tried = 0
+        num_of_rotations_completed = 0
+        
+
+# Delete random samples from the augmented images to make them 400
+base_path = "data\\processed_data\\style_classification\\normalized_avg\\train_val_augmented"
+
+for style_folder in os.listdir(base_path):
+    for letter_dir in os.listdir(os.path.join(base_path, style_folder)):
+        full_path_to_curr_samples = os.path.join(base_path, style_folder, letter_dir)
+        samples_dir_iter = os.listdir(full_path_to_curr_samples)
+        num_of_samples = len(samples_dir_iter)
+        if num_of_samples == 440:
+            num_of_samples_to_be_removed = 40
+        else:
+            num_of_samples_to_be_removed = 60
+            
+        list_of_to_be_removed_samples = random.sample(range(0, num_of_samples-1), num_of_samples_to_be_removed)
+        
+        for sample in samples_dir_iter:
+            if int(sample.split('.')[0]) in list_of_to_be_removed_samples:
+                os.remove(os.path.join(full_path_to_curr_samples, sample))
+                
+                """
