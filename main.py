@@ -7,12 +7,14 @@ from character_style_recognition.data_prep_tensor import (
     RecognitionDataPrepTensor,
     StyleDataPrepTensor,
 )
+from line_segmentation import line_segmentation
 import os
 
 if __name__ == "__main__":
 
-    path_to_real_scrolls = "D:\\PythonProjects\\HWR_group_5\\data\\sample-test-2021\\"
+    path_to_real_scrolls = "D:\\uni\\handwritingrecognition\\project\\HWR_group_5\\data\\sample-test-2021\\"
 
+    line_segmentation(path_to_real_scrolls)
     # Logic for extracing the lines and save them in a structure as follows:
 
     # image_name_folder
@@ -24,7 +26,8 @@ if __name__ == "__main__":
     #            segmented_char_n.png
 
     # Iterate image folders and their nested folders to get the lines
-    mock_images_dir = "data\\mock_real_images"
+    # mock_images_dir = "data\\mock_real_images"
+    mock_images_dir = "data\\images"
 
     # CONSTANT VARIABLES
     # Choose a resizing mode depending on our best model later
