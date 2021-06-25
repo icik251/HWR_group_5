@@ -33,9 +33,9 @@ class CharacterProcessing:
 
     def _load_shape(self):
         if self.resize_mode == "smallest":
-            path_to_letter_folders = "data\\resizing_shapes\\normalized_smallest"
+            path_to_letter_folders = "config_data\\resizing_shapes\\normalized_smallest"
         elif self.resize_mode == "average":
-            path_to_letter_folders = "data\\resizing_shapes\\normalized_avg"
+            path_to_letter_folders = "config_data\\resizing_shapes\\normalized_avg"
 
         if self.model_mode == "recognition":
             path_to_shape = os.path.join(
@@ -71,37 +71,3 @@ class CharacterProcessing:
 
     def get_image(self):
         return self.resized_image
-
-
-"""
-RESIZE_MODE = "smallest"
-
-for line_folder in os.listdir("data\\TESTING_some_image_name\\"):
-    # if for recognition
-    if line_folder.split("_")[0] == "line":
-        for image_in_line_folder in os.listdir(
-            os.path.join("data\\TESTING_some_image_name\\", line_folder)
-        ):
-            if image_in_line_folder.split("_")[0] == "char":
-                path_to_image = os.path.join(
-                    "data\\TESTING_some_image_name\\", line_folder, image_in_line_folder
-                )
-                character_processing = CharacterProcessing(
-                    path_to_image, resize_mode=RESIZE_MODE, model_mode="recognition"
-                )
-                character_processing.resize_image()
-
-    # else for style classification when letters are already recognized
-    if line_folder.split("_")[0] == "recognized":
-        for image_in_line_folder in os.listdir(
-            os.path.join("data\\TESTING_some_image_name\\", line_folder)
-        ):
-            if image_in_line_folder.split("_")[1].split("_")[0] == "char":
-                path_to_image = os.path.join(
-                    "data\\TESTING_some_image_name\\", line_folder, image_in_line_folder
-                )
-                character_processing = CharacterProcessing(
-                    path_to_image, resize_mode=RESIZE_MODE, model_mode="style"
-                )
-                character_processing.resize_image()
-"""

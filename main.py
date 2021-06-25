@@ -26,19 +26,26 @@ if __name__ == "__main__":
 
     # Iterate image folders and their nested folders to get the lines
     mock_images_dir = "data\\mock_real_images"
+
+    # CONSTANT VARIABLES
     # Choose a resizing mode depending on our best model later
-    RESIZE_MODE = "smallest"
+    RESIZE_REOCOGNITION = "smallest"
+    RESIZE_STYLE = "average"
+
+    # Models paths
+    reco_model_path = "config_data\\models\\character_recognition_final\\norm_smallest_batch_32_augmented_train_val_non_augmented_mnist_True_freeze_False_optim_SGD_lr_0.01\\checkpoint_optimal.pth"
+    style_model_path = "config_data\\models\\style_classification_final\\norm_avg_batch_300_augmented_train_val_augmented_mnist_True_freeze_False_optim_Adam_lr_0.001\\checkpoint_optimal.pth"
 
     reco_model_obj = Model(
         mode="recognition",
-        model_path_to_load="data\\models\\character_recognition\\norm_smallest_freeze_False\\checkpoint_optimal.pth",
+        model_path_to_load=reco_model_path,
         freeze_layers=False,
         is_production=True,
     )
 
     style_model_obj = Model(
         mode="style",
-        model_path_to_load="data\\models\\style_classification\\norm_smallest_freeze_False\\checkpoint_optimal.pth",
+        model_path_to_load=style_model_path,
         freeze_layers=False,
         is_production=True,
     )
@@ -88,7 +95,7 @@ if __name__ == "__main__":
 
                         character_processing = CharacterProcessing(
                             path_to_char_image,
-                            resize_mode=RESIZE_MODE,
+                            resize_mode=RESIZE_REOCOGNITION,
                             model_mode="recognition",
                         )
                         # Append resized for recognition
@@ -119,37 +126,40 @@ if __name__ == "__main__":
                         "{}_{}".format(pred_label, original_char_img_name),
                         os.path.join(mock_images_dir, image_dir, line_dir),
                     )
-                    
+
     # After all lines for all images are recognized, we loop again to classify style
     for image_dir in os.listdir(mock_images_dir):
-        
+
         list_of_image_probabilities = list()
-        
+
         for line_dir in os.listdir(os.path.join(mock_images_dir, image_dir)):
             if line_dir.split("_")[0] == "line":
-                
+
                 list_of_resized_characters_to_style_classify = list()
-                
+
                 for image_in_dir_line in os.listdir(
                     os.path.join(mock_images_dir, image_dir, line_dir)
-                ):      
-                    if image_in_dir_line.split("_")[0] in style_model_obj.char2idx.keys():
+                ):
+                    if (
+                        image_in_dir_line.split("_")[0]
+                        in style_model_obj.char2idx.keys()
+                    ):
                         path_to_recognized_char_image = os.path.join(
                             mock_images_dir, image_dir, line_dir, image_in_dir_line
                         )
-                        
+
                         character_processing = CharacterProcessing(
                             path_to_recognized_char_image,
-                            resize_mode=RESIZE_MODE,
+                            resize_mode=RESIZE_STYLE,
                             model_mode="style",
                         )
-                        
+
                         # Append resized for style classification
                         character_processing.resize_image()
                         list_of_resized_characters_to_style_classify.append(
                             character_processing.get_image()
                         )
-                        
+
                 style_data_prep_tensor = StyleDataPrepTensor()
                 style_production_dataloader = (
                     style_data_prep_tensor.get_data_loader_production(
@@ -160,22 +170,29 @@ if __name__ == "__main__":
                 list_of_style_probability_for_line = style_model_obj.classify_style(
                     style_production_dataloader
                 )
-                
+
                 list_of_image_probabilities += list_of_style_probability_for_line
-        
+
         # Naive Bayes and get style name
-        print(list_of_image_probabilities)
-        classified_style_idx = np.argmax(sum(list(map(lambda x: np.log(x), list_of_image_probabilities))))
+        linearTransform = (
+            lambda probability: (probability - 1 / 3) * (1 - 3 * 0.05) + 1 / 3
+        )
+
+        transformed_image_probabilities = list(
+            map(lambda x: list(map(linearTransform, x)), list_of_image_probabilities)
+        )
+
+        # Naive Bayes Classification of the handwritten page in a single line:
+        classified_style_idx = np.argmax(
+            sum(list(map(lambda x: np.log(x), transformed_image_probabilities)))
+        )
         classified_style_label = list(style_model_obj.style2idx.keys())[
-                    list(style_model_obj.style2idx.values()).index(classified_style_idx)
-                ]
-        
+            list(style_model_obj.style2idx.values()).index(classified_style_idx)
+        ]
+
         # Save the style in a txt in the image dir
-        with open(os.path.join(mock_images_dir, image_dir, "classified_style.txt"), "w") as f:
+        with open(
+            os.path.join(mock_images_dir, image_dir, "classified_style.txt"), "w"
+        ) as f:
             f.write(classified_style_label)
         f.close()
-                        
-                
-        
-                    
-                

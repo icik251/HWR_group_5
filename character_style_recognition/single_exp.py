@@ -7,14 +7,16 @@ from torch import nn
 import torch.optim as optim
 import copy
 
-#norm_avg_batch_300_augmented_train_augmented_mnist_True_freeze_False_optim_Adam_lr_0.001
-list_of_size_normalizations = ["average"]
-list_of_batch_sizes = [300]
+# Running a signle experiment if something was messed up with an old one
+
+#norm_smallest_batch_32_augmented_train_mnist_True_freeze_False_optim_SGD_lr_0.01
+list_of_size_normalizations = ["smallest"]
+list_of_batch_sizes = [32]
 list_of_freeze_layers = [False]
-list_of_augmented = ["train_augmented"]
+list_of_augmented = ["train"]
 list_of_mnist = [True]
-list_of_optimizers = ["Adam"]
-list_of_learning_rates = [0.001]
+list_of_optimizers = ["SGD"]
+list_of_learning_rates = [0.01]
 
 for normalization_type in list_of_size_normalizations:
     for augmented_dir in list_of_augmented:
@@ -23,18 +25,16 @@ for normalization_type in list_of_size_normalizations:
             normalization_type = "avg"
 
         data_loader = DataLoader()
-        dict_of_style_train = data_loader.get_characters_style_based(
-            "data\\processed_data\\style_classification\\normalized_{}\\{}".format(
+        dict_of_style_train = data_loader.get_characters_train_data(
+            "data\\processed_data\\character_recognition\\normalized_{}\\{}".format(
                 normalization_type, augmented_dir
             ),
-            type_img="pgm",
         )
 
-        dict_of_style_val = data_loader.get_characters_style_based(
-            "data\\processed_data\\style_classification\\normalized_{}\\val".format(
+        dict_of_style_val = data_loader.get_characters_train_data(
+            "data\\processed_data\\character_recognition\\normalized_{}\\val".format(
                 normalization_type
             ),
-            type_img="pgm",
         )
         for batch_size in list_of_batch_sizes:
             for freeze_bool in list_of_freeze_layers:
@@ -62,7 +62,7 @@ for normalization_type in list_of_size_normalizations:
                             )
 
                             path_to_save_model = os.path.join(
-                                "data\\models\\style_classification",
+                                "data\\models\\character_recognition",
                                 model_folder,
                             )
 
@@ -75,7 +75,7 @@ for normalization_type in list_of_size_normalizations:
                                 )
                                 break
 
-                            style_data_prep = StyleDataPrepTensor()
+                            style_data_prep = RecognitionDataPrepTensor()
                             (
                                 train_loader,
                                 test_loader,
@@ -86,7 +86,7 @@ for normalization_type in list_of_size_normalizations:
                             )
 
                             model_obj = Model(
-                                mode="style",
+                                mode="recognition",
                                 model_path_to_load=path_to_checkpoint,
                                 freeze_layers=freeze_bool,
                                 seed=42,

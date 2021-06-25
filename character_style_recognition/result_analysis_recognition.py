@@ -1,16 +1,7 @@
-# Pipeline for different experiments RECOGNITION
-list_of_size_normalizations = ["average", "smallest"]
-list_of_batch_sizes = [128, 256]
-list_of_freeze_layers = [True, False]
-list_of_augmented = ["train_augmented", "train"]
-list_of_mnist = [True, False]
-list_of_optimizers = ["Adam", "SGD"]
-list_of_learning_rates = [0.01, 0.001]
-
 import os
 import torch
 
-base_path = "data\\models\\character_recognition"
+base_path = "data\\models\\character_recognition_final"
 dict_of_results_checkpoints = dict()
 
 for model_dir in os.listdir(base_path):
@@ -73,5 +64,5 @@ for k, v in dict_of_results_checkpoints.items():
     # plt.subplot(epochs, v['train_acc'], label='Train')
 
     # plt.show()
-    plt.savefig("data\\plots\\character_recognition\\{}.png".format(k))
+    plt.savefig("data\\plots\\character_recognition_final\\{}.png".format(k))
     plt.cla()

@@ -18,7 +18,7 @@ from utils import (
 
 
 class LineProcessing:
-    def __init__(self, path_to_image_line) -> None:
+    def __init__(self, path_to_image_line, save_skel_binary=False) -> None:
         self.path_to_image_line = path_to_image_line
         self.initial_line = cv2.imread(self.path_to_image_line)
         self.gray_image = convert_grayscale(self.initial_line)
@@ -32,6 +32,7 @@ class LineProcessing:
         self.pix_idx_start_sequence = 0
         self.pix_idx_end_sequence = 0
         self.is_in_character = False
+        self.save_skel_binary = save_skel_binary
 
     def apply_vertical_projection(self, binary_treshold="median"):
         # skeletonize before vertical projection
@@ -276,12 +277,6 @@ class LineProcessing:
             self.gray_image, binary_threshold
         )
 
-        save_image(
-            self.binary_image,
-            "line_binary",
-            self.path_to_line_folder,
-        )
-
         """
         self.binary_image = self._fill_ruined_pixels(self.binary_image)
 
@@ -300,11 +295,18 @@ class LineProcessing:
         # undo_reverse_image
         self.skel_line = reverse_black_white_keep_values(self.skel_line)
 
-        save_image(
-            self.skel_line,
-            "line_skel",
-            self.path_to_line_folder,
-        )
+        if self.save_skel_binary:
+            save_image(
+                self.binary_image,
+                "line_binary",
+                self.path_to_line_folder,
+            )
+
+            save_image(
+                self.skel_line,
+                "line_skel",
+                self.path_to_line_folder,
+            )
         # plt.imshow(skel_image)
         # plt.show()
 
@@ -353,18 +355,3 @@ class LineProcessing:
         self.remove_non_character_images()
         self.cut_top_and_bottom_white_pix()
         self.save_segmented_characters()
-
-
-"""
-line_processing = LineProcessing(
-    "D:\\PythonProjects\\HWR_group_5\\data\\TESTING_some_image_name\\line_2\\line_2.png"
-)
-
-## Our main approach
-line_processing.logic()
-
-## Just contour approach
-
-line_processing.segmentation_logic_2()
-line_processing.save_segmented_characters()
-"""
