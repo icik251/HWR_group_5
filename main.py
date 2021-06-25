@@ -55,6 +55,9 @@ if __name__ == "__main__":
     for image_dir in os.listdir(mock_images_dir):
         # Process each line of the current image and extract characters
         for line_dir in os.listdir(os.path.join(mock_images_dir, image_dir)):
+            if line_dir.endswith('.txt'):
+                continue
+            
             images_in_line_dir_iter = os.listdir(
                 os.path.join(mock_images_dir, image_dir, line_dir)
             )
@@ -173,7 +176,7 @@ if __name__ == "__main__":
                 )
 
                 list_of_image_probabilities += list_of_style_probability_for_line
-
+        
         # Naive Bayes and get style name
         linearTransform = (
             lambda probability: (probability - 1 / 3) * (1 - 3 * 0.05) + 1 / 3
@@ -183,6 +186,7 @@ if __name__ == "__main__":
             map(lambda x: list(map(linearTransform, x)), list_of_image_probabilities)
         )
 
+        print(transformed_image_probabilities)
         # Naive Bayes Classification of the handwritten page in a single line:
         classified_style_idx = np.argmax(
             sum(list(map(lambda x: np.log(x), transformed_image_probabilities)))
