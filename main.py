@@ -33,8 +33,8 @@ if __name__ == "__main__":
     RESIZE_STYLE = "average"
 
     # Models paths
-    reco_model_path = "data\\models\\character_recognition_final\\norm_smallest_batch_32_augmented_train_val_non_augmented_mnist_True_freeze_False_optim_SGD_lr_0.01\\checkpoint_optimal.pth"
-    style_model_path = "data\\models\\style_classification_final\\norm_avg_batch_300_augmented_train_val_augmented_mnist_True_freeze_False_optim_Adam_lr_0.001\\checkpoint_optimal.pth"
+    reco_model_path = "config_data\\models\\character_recognition_final\\norm_smallest_batch_32_augmented_train_val_non_augmented_mnist_True_freeze_False_optim_SGD_lr_0.01\\checkpoint_optimal.pth"
+    style_model_path = "config_data\\models\\style_classification_final\\norm_avg_batch_300_augmented_train_val_augmented_mnist_True_freeze_False_optim_Adam_lr_0.001\\checkpoint_optimal.pth"
 
     reco_model_obj = Model(
         mode="recognition",

@@ -355,18 +355,3 @@ class LineProcessing:
         self.remove_non_character_images()
         self.cut_top_and_bottom_white_pix()
         self.save_segmented_characters()
-
-
-"""
-line_processing = LineProcessing(
-    "D:\\PythonProjects\\HWR_group_5\\data\\TESTING_some_image_name\\line_2\\line_2.png"
-)
-
-## Our main approach
-line_processing.logic()
-
-## Just contour approach
-
-line_processing.segmentation_logic_2()
-line_processing.save_segmented_characters()
-"""
