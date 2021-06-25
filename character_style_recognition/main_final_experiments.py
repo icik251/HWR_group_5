@@ -113,7 +113,9 @@ if __name__ == "__main__":
     
     
     # STYLE final model training
-    final_style_model_name = ""
+    # norm_avg_batch_300_augmented_train_augmented_mnist_True_freeze_False_optim_Adam_lr_0.001 - 45% acc (first choise)
+    # norm_avg_batch_300_augmented_train_augmented_mnist_True_freeze_True_optim_Adam_lr_0.001 - (second choise)
+    final_style_model_name = "norm_avg_batch_300_augmented_train_augmented_mnist_True_freeze_True_optim_Adam_lr_0.001"
     
     list_of_splitted = final_style_model_name.split("_")
     normalization_type = list_of_splitted[1]

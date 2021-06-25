@@ -9,7 +9,6 @@ import copy
 
 # Running a signle experiment if something was messed up with an old one
 
-
 #norm_smallest_batch_32_augmented_train_mnist_True_freeze_False_optim_SGD_lr_0.01
 list_of_size_normalizations = ["smallest"]
 list_of_batch_sizes = [32]

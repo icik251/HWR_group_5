@@ -1,5 +1,5 @@
-from early_stopping import EarlyStopping
-from mnist_model import MNISTResNet
+from .early_stopping import EarlyStopping
+from .mnist_model import MNISTResNet
 
 import torch.nn as nn
 import torch.nn.functional as F

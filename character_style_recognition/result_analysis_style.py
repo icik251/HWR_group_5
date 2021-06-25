@@ -1,7 +1,7 @@
 import os
 import torch
 
-base_path = "data\\models\\style_classification_beta"
+base_path = "data\\models\\style_classification_final"
 dict_of_results_checkpoints = dict()
 
 for model_dir in os.listdir(base_path):
@@ -64,5 +64,5 @@ for k, v in dict_of_results_checkpoints.items():
     # plt.subplot(epochs, v['train_acc'], label='Train')
 
     # plt.show()
-    plt.savefig("data\\plots\\style_classification_beta\\{}.png".format(k))
+    plt.savefig("data\\plots\\style_classification_final\\{}.png".format(k))
     plt.cla()
