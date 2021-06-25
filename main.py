@@ -164,7 +164,12 @@ if __name__ == "__main__":
                 list_of_image_probabilities += list_of_style_probability_for_line
         
         # Naive Bayes and get style name
-        classified_style_idx = np.argmax(sum(list(map(lambda x: np.log(x), list_of_image_probabilities))))
+        linearTransform = (lambda probability: (probability -1/3) *(1-3*0.05) +1/3)
+
+        transformed_image_probabilities = list(map( lambda x: list(map(linearTransform,x)) , list_of_image_probabilities))
+
+        # Naive Bayes Classification of the handwritten page in a single line:
+        classified_style_idx = np.argmax(sum(list(map(lambda x: np.log(x), transformed_image_probabilities))))
         classified_style_label = list(style_model_obj.style2idx.keys())[
                     list(style_model_obj.style2idx.values()).index(classified_style_idx)
                 ]
