@@ -2,7 +2,7 @@ import numpy as np
 from utils import load_image, save_image
 from character_segmentation.line_processing import LineProcessing
 from data_preparation.character_processing import CharacterProcessing
-from character_style_recognition.model import Model
+from model import Model
 from character_style_recognition.data_prep_tensor import (
     RecognitionDataPrepTensor,
     StyleDataPrepTensor,
