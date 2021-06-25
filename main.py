@@ -9,7 +9,6 @@ from character_style_recognition.data_prep_tensor import (
 )
 import os
 
-
 if __name__ == "__main__":
 
     path_to_real_scrolls = "D:\\PythonProjects\\HWR_group_5\\data\\sample-test-2021\\"
