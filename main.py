@@ -1,23 +1,60 @@
+import collections
 import numpy as np
 from utils import load_image, save_image
 from character_segmentation.line_processing import LineProcessing
 from data_preparation.character_processing import CharacterProcessing
 from model import Model
+from pathlib import Path
 from character_style_recognition.data_prep_tensor import (
     RecognitionDataPrepTensor,
     StyleDataPrepTensor,
 )
 from line_segmentation import line_segmentation
 import os
+import argparse
 
-if __name__ == "__main__":
+parser = argparse.ArgumentParser(
+    description="Run the Hebrew character recognizer and style classifier system"
+)
+parser.add_argument(
+    "images_dir", type=Path, help="Path to the directory where the images are"
+)
 
-    path_to_real_scrolls = "data\\sample-test-2021\\"
+char2unicode = {
+    "Alef": ("א", "U+05D0"),
+    "Ayin": ("ע", "U+05E2"),
+    "Bet": ("ב", "U+05D1"),
+    "Dalet": ("ד", "U+05D3"),
+    "Gimel": ("ג", "U+05D2"),
+    "He": ("ה", "U+05D4	"),
+    "Het": ("ח", "U+05D7"),
+    "Kaf": ("כ", "U+05DB"),
+    "Kaf-final": ("ך", "U+05DA"),
+    "Lamed": ("ל", "U+05DC"),
+    "Mem": ("ם", "U+05DD"),
+    "Mem-medial": ("מ", "U+05DE"),
+    "Nun-final": ("ן", "U+05DF"),
+    "Nun-medial": ("נ", "U+05E0"),
+    "Pe": ("פ", "U+05E4"),
+    "Pe-final": ("ף", "U+05E3"),
+    "Qof": ("ק", "U+05E7"),
+    "Resh": ("ר", "U+05E8"),
+    "Samekh": ("ס", "U+05E1"),
+    "Shin": ("ש", "U+05E9"),
+    "Taw": ("ת", "U+05EA"),
+    "Tet": ("ט", "U+05D8"),
+    "Tsadi-final": ("ץ", "U+05E5"),
+    "Tsadi-medial": ("צ", "U+05E6"),
+    "Waw": ("ו", "U+05D5"),
+    "Yod": ("י", "U+05D9"),
+    "Zayin": ("ז", "U+05D6"),
+}
 
-    line_segmentation(path_to_real_scrolls)
+def pipeline_logic(images_dir):
+
     # Logic for extracing the lines and save them in a structure as follows:
-
-    # image_name_folder
+    line_segmentation(images_dir)
+    # data\\images\\image_name_folder
     #    line_1_folder
     #    line_2_folder (and so on)
     #            line_2.png
@@ -25,9 +62,10 @@ if __name__ == "__main__":
     #            segmented_char_2.png
     #            segmented_char_n.png
 
-    # Iterate image folders and their nested folders to get the lines
-    # mock_images_dir = "data\\mock_real_images"
-    mock_images_dir = "data\\images"
+    # Iterate image folders and their nested folders to get the line
+
+    # Maybe change this to "results"
+    result_images_dir = "data\\images"
 
     # CONSTANT VARIABLES
     # Choose a resizing mode depending on our best model later
@@ -52,14 +90,14 @@ if __name__ == "__main__":
         is_production=True,
     )
 
-    for image_dir in os.listdir(mock_images_dir):
+    for image_dir in os.listdir(result_images_dir):
         # Process each line of the current image and extract characters
-        for line_dir in os.listdir(os.path.join(mock_images_dir, image_dir)):
-            if line_dir.endswith('.txt'):
+        for line_dir in os.listdir(os.path.join(result_images_dir, image_dir)):
+            if line_dir.endswith(".txt"):
                 continue
-            
+
             images_in_line_dir_iter = os.listdir(
-                os.path.join(mock_images_dir, image_dir, line_dir)
+                os.path.join(result_images_dir, image_dir, line_dir)
             )
             if line_dir.split("_")[0] == "line" and len(images_in_line_dir_iter) > 0:
                 for image_in_dir_line in images_in_line_dir_iter:
@@ -67,7 +105,7 @@ if __name__ == "__main__":
                         0
                     ] == "line" and image_in_dir_line.endswith(".png"):
                         path_to_line_image = os.path.join(
-                            mock_images_dir, image_dir, line_dir, image_in_dir_line
+                            result_images_dir, image_dir, line_dir, image_in_dir_line
                         )
                         line_processing = LineProcessing(path_to_line_image)
 
@@ -83,10 +121,14 @@ if __name__ == "__main__":
                 list_of_original_character_images = list()
                 list_of_original_char_images_names = list()
 
+                images_in_line_dir_iter = os.listdir(
+                os.path.join(result_images_dir, image_dir, line_dir)
+                )
+                
                 for image_in_dir_line in images_in_line_dir_iter:
                     if image_in_dir_line.split("_")[0] == "char":
                         path_to_char_image = os.path.join(
-                            mock_images_dir, image_dir, line_dir, image_in_dir_line
+                            result_images_dir, image_dir, line_dir, image_in_dir_line
                         )
 
                         # Append original image
@@ -128,28 +170,67 @@ if __name__ == "__main__":
                     save_image(
                         original_char_image,
                         "{}_{}".format(pred_label, original_char_img_name),
-                        os.path.join(mock_images_dir, image_dir, line_dir),
+                        os.path.join(result_images_dir, image_dir, line_dir),
                     )
 
+    # Save the recognized characters in a file in the image dir
+    for image_dir in os.listdir(result_images_dir):
+        # Process each line of the current image and extract characters
+        line_folders = os.listdir(os.path.join(result_images_dir, image_dir))
+        line_folders.sort()
+
+        for line_dir in line_folders:
+            if line_dir.endswith(".txt"):
+                continue
+
+            images_in_line_dir_iter = os.listdir(
+                os.path.join(result_images_dir, image_dir, line_dir)
+            )
+
+            dict_of_characters = dict()
+            for curr_file in images_in_line_dir_iter:
+
+                char_name = curr_file.split("_")[0]
+
+                if char_name in char2unicode.keys():
+                    char_position = int(curr_file.split("_")[2].split(".")[0])
+                    dict_of_characters[char_position] = char2unicode[char_name][0]
+
+            ordered_dict_of_chars = collections.OrderedDict(
+                sorted(dict_of_characters.items())
+            )
+
+            f_recognized = open(
+                os.path.join(
+                    result_images_dir, image_dir, "{}_characters.txt".format(image_dir)
+                ),
+                "a",
+                encoding="utf-8",
+            )
+            for char_pos, char_symbol in ordered_dict_of_chars.items():
+                f_recognized.write(char_symbol)
+            f_recognized.write("\n")
+            f_recognized.close()
+
     # After all lines for all images are recognized, we loop again to classify style
-    for image_dir in os.listdir(mock_images_dir):
+    for image_dir in os.listdir(result_images_dir):
 
         list_of_image_probabilities = list()
 
-        for line_dir in os.listdir(os.path.join(mock_images_dir, image_dir)):
+        for line_dir in os.listdir(os.path.join(result_images_dir, image_dir)):
             if line_dir.split("_")[0] == "line" and len(images_in_line_dir_iter) > 0:
 
                 list_of_resized_characters_to_style_classify = list()
 
                 for image_in_dir_line in os.listdir(
-                    os.path.join(mock_images_dir, image_dir, line_dir)
+                    os.path.join(result_images_dir, image_dir, line_dir)
                 ):
                     if (
                         image_in_dir_line.split("_")[0]
                         in style_model_obj.char2idx.keys()
                     ):
                         path_to_recognized_char_image = os.path.join(
-                            mock_images_dir, image_dir, line_dir, image_in_dir_line
+                            result_images_dir, image_dir, line_dir, image_in_dir_line
                         )
 
                         character_processing = CharacterProcessing(
@@ -176,7 +257,7 @@ if __name__ == "__main__":
                 )
 
                 list_of_image_probabilities += list_of_style_probability_for_line
-        
+
         # Naive Bayes and get style name
         linearTransform = (
             lambda probability: (probability - 1 / 3) * (1 - 3 * 0.05) + 1 / 3
@@ -186,7 +267,6 @@ if __name__ == "__main__":
             map(lambda x: list(map(linearTransform, x)), list_of_image_probabilities)
         )
 
-        print(transformed_image_probabilities)
         # Naive Bayes Classification of the handwritten page in a single line:
         classified_style_idx = np.argmax(
             sum(list(map(lambda x: np.log(x), transformed_image_probabilities)))
@@ -197,7 +277,19 @@ if __name__ == "__main__":
 
         # Save the style in a txt in the image dir
         with open(
-            os.path.join(mock_images_dir, image_dir, "classified_style.txt"), "w"
+            os.path.join(
+                result_images_dir, image_dir, "{}_style.txt".format(image_dir)
+            ),
+            "w",
         ) as f:
             f.write(classified_style_label)
         f.close()
+
+
+def main():
+    args = parser.parse_args()
+    pipeline_logic(images_dir=Path(args.images_dir))
+
+
+if __name__ == "__main__":
+    main()

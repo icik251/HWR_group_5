@@ -6,11 +6,11 @@ import os
 def line_segmentation(imagepath, debug=False):
     np.set_printoptions(threshold=np.inf)
     path = imagepath
-    if not os.path.exists('data/images/'):
-        os.makedirs('data/images/')
+    if not os.path.exists("data/images/"):
+        os.makedirs("data/images/")
 
     for file in os.listdir(path):
-        if not file.endswith('.pbm'):
+        if not file.endswith(".pbm"):
             continue
 
         savepath = "data/images/" + file[:-4] + "/"
@@ -18,13 +18,13 @@ def line_segmentation(imagepath, debug=False):
         if not os.path.exists(savepath):
             os.makedirs(savepath)
 
-        image = cv2.imread(path + file)
+        image = cv2.imread(os.path.join(path, file))
         im_height = image.shape[0]
         im_width = image.shape[1]
 
         stripe_width = im_width // 15
 
-        ''' simple segmentation by dilating all text and collecting these as images '''
+        """ simple segmentation by dilating all text and collecting these as images """
         # grayscale
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         # cv2.imwrite(savepath + "gray.png", gray)
@@ -37,7 +37,7 @@ def line_segmentation(imagepath, debug=False):
         psl = np.zeros((im_height, 16))
         i = 0
         tiles = []
-        '''
+        """
         # Divide the document image in stripes of fixed size
         for x in range(0, im_width, stripe_width):
             x1 = x + stripe_width
@@ -77,7 +77,7 @@ def line_segmentation(imagepath, debug=False):
         # Based on avg_line_height, under-segmentation is detected and handled.
 
         # Finally, lines are separated.
-        '''
+        """
 
         # dilation
         kernel = np.ones((5, 100), np.uint8)
@@ -85,7 +85,9 @@ def line_segmentation(imagepath, debug=False):
         # cv2.imwrite(savepath + 'dilation.png', img_dilation)
 
         # find contours
-        ctrs, hier = cv2.findContours(img_dilation.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        ctrs, hier = cv2.findContours(
+            img_dilation.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+        )
 
         # sort contours
         sorted_ctrs = sorted(ctrs, key=lambda ctr: cv2.boundingRect(ctr)[0])
@@ -95,7 +97,7 @@ def line_segmentation(imagepath, debug=False):
             x, y, w, h = cv2.boundingRect(ctr)
 
             # Getting ROI
-            roi = image[y:y + h, x:x + w]
+            roi = image[y : y + h, x : x + w]
             heights.append(roi.shape[0])
 
         avg_line_height = np.mean(heights)
@@ -109,21 +111,23 @@ def line_segmentation(imagepath, debug=False):
             x, y, w, h = cv2.boundingRect(ctr)
 
             # Getting ROI
-            roi = image[y:y + h, x:x + w]
+            roi = image[y : y + h, x : x + w]
             # print(roi.shape)
             # print(i)
 
             # show ROI
-            if not os.path.exists(savepath + '/line_%d/' % (i + 1)):
-                os.makedirs(savepath + '/line_%d/' % (i + 1))
-            if not os.path.exists(savepath + '/line_%d/not_accepted' % (i + 1)):
-                os.makedirs(savepath + '/line_%d/not_accepted' % (i + 1))
+            if not os.path.exists(savepath + "/line_%d/" % (i + 1)):
+                os.makedirs(savepath + "/line_%d/" % (i + 1))
+            if not os.path.exists(savepath + "/line_%d/not_accepted" % (i + 1)):
+                os.makedirs(savepath + "/line_%d/not_accepted" % (i + 1))
 
             if roi.shape[0] < avg_line_height / 2:
-                cv2.imwrite(savepath + '/line_%d/not_accepted/line_%d.png' % (i + 1, i + 1), roi)
+                cv2.imwrite(
+                    savepath + "/line_%d/not_accepted/line_%d.png" % (i + 1, i + 1), roi
+                )
                 cv2.rectangle(deleted, (x, y), (x + w, y + h), (90, 0, 255), 2)
             else:
-                cv2.imwrite(savepath + '/line_%d/line_%d.png' % (i + 1, i + 1), roi)
+                cv2.imwrite(savepath + "/line_%d/line_%d.png" % (i + 1, i + 1), roi)
                 cv2.rectangle(saved, (x, y), (x + w, y + h), (90, 0, 255), 2)
 
         # cv2.imwrite(savepath + 'marked_image.png', saved)
