@@ -50,6 +50,7 @@ char2unicode = {
     "Zayin": ("ז", "U+05D6"),
 }
 
+
 def pipeline_logic(images_dir):
 
     # Logic for extracing the lines and save them in a structure as follows:
@@ -110,11 +111,7 @@ def pipeline_logic(images_dir):
                         line_processing = LineProcessing(path_to_line_image)
 
                         line_processing.logic()
-                        print(
-                            "Characters extracted from image {} from line: {}".format(
-                                image_dir, image_in_dir_line
-                            )
-                        )
+
                 # List to save the resized images before they are ran through the network
                 list_of_resized_characters_to_recognize = list()
                 # List of original images to input to the style classifier resizer
@@ -122,9 +119,9 @@ def pipeline_logic(images_dir):
                 list_of_original_char_images_names = list()
 
                 images_in_line_dir_iter = os.listdir(
-                os.path.join(result_images_dir, image_dir, line_dir)
+                    os.path.join(result_images_dir, image_dir, line_dir)
                 )
-                
+
                 for image_in_dir_line in images_in_line_dir_iter:
                     if image_in_dir_line.split("_")[0] == "char":
                         path_to_char_image = os.path.join(
@@ -177,7 +174,22 @@ def pipeline_logic(images_dir):
     for image_dir in os.listdir(result_images_dir):
         # Process each line of the current image and extract characters
         line_folders = os.listdir(os.path.join(result_images_dir, image_dir))
-        line_folders.sort()
+
+        # Sort folders by lines
+        temp_dict_of_lines = dict()
+        for line_folder_unsorted in line_folders:
+            if line_folder_unsorted.endswith(".txt"):
+                continue
+
+            temp_dict_of_lines[
+                int(line_folder_unsorted.split("_")[1])
+            ] = line_folder_unsorted
+
+        temp_dict_of_sorted_lines = collections.OrderedDict(
+            sorted(temp_dict_of_lines.items())
+        )
+        
+        line_folders = list(temp_dict_of_sorted_lines.values())
 
         for line_dir in line_folders:
             if line_dir.endswith(".txt"):
@@ -193,11 +205,23 @@ def pipeline_logic(images_dir):
                 char_name = curr_file.split("_")[0]
 
                 if char_name in char2unicode.keys():
-                    char_position = int(curr_file.split("_")[2].split(".")[0])
-                    dict_of_characters[char_position] = char2unicode[char_name][0]
+
+                    end_word = False
+
+                    if len(curr_file.split("_")) >= 4:
+                        char_position = int(curr_file.split("_")[2])
+                        end_word = True
+                    else:
+                        char_position = int(curr_file.split("_")[2].split(".")[0])
+                        end_word = False
+
+                    dict_of_characters[char_position] = (
+                        char2unicode[char_name][0],
+                        end_word,
+                    )
 
             ordered_dict_of_chars = collections.OrderedDict(
-                sorted(dict_of_characters.items())
+                sorted(dict_of_characters.items(), reverse=True)
             )
 
             f_recognized = open(
@@ -207,10 +231,29 @@ def pipeline_logic(images_dir):
                 "a",
                 encoding="utf-8",
             )
-            for char_pos, char_symbol in ordered_dict_of_chars.items():
-                f_recognized.write(char_symbol)
+            builded_string = ""
+            for char_pos, (char_symbol, is_end_word) in ordered_dict_of_chars.items():
+
+                # First put the empty space after that the char because we write from right to left
+                if is_end_word:
+                    builded_string += " "
+                    # f_recognized.write(" ")
+
+                builded_string += char_symbol
+
+            f_recognized.write(builded_string)
+
             f_recognized.write("\n")
             f_recognized.close()
+
+        print(
+            "Recognized characters saved in {} for image {}".format(
+                os.path.join(
+                    result_images_dir, image_dir, "{}_characters.txt".format(image_dir)
+                ),
+                image_dir,
+            )
+        )
 
     # After all lines for all images are recognized, we loop again to classify style
     for image_dir in os.listdir(result_images_dir):
@@ -284,6 +327,15 @@ def pipeline_logic(images_dir):
         ) as f:
             f.write(classified_style_label)
         f.close()
+
+        print(
+            "Classified style saved in {} for image {}".format(
+                os.path.join(
+                    result_images_dir, image_dir, "{}_style.txt".format(image_dir)
+                ),
+                image_dir,
+            )
+        )
 
 
 def main():

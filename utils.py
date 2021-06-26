@@ -85,7 +85,7 @@ def save_image(image, image_name, path):
     if not os.path.exists(path):
         os.makedirs(path)
     try:
-        cv2.imwrite(os.path.join(path, "{}.pgm".format(image_name)), image)
+        cv2.imwrite(os.path.join(path, "{}.png".format(image_name)), image)
     except Exception as e:
         print(e)
 
