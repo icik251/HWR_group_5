@@ -3,17 +3,17 @@ import numpy as np
 import os
 
 
-def line_segmentation(imagepath, debug=False):
+def line_segmentation(imagepath, path_to_save, debug=False):
     np.set_printoptions(threshold=np.inf)
     path = imagepath
-    if not os.path.exists("data/images/"):
-        os.makedirs("data/images/")
+    if not os.path.exists(path_to_save):
+        os.makedirs(path_to_save)
 
     for file in os.listdir(path):
         if not file.endswith(".pbm"):
             continue
 
-        savepath = "data/images/" + file[:-4] + "/"
+        savepath = str(path_to_save) + "/" + file[:-4] + "/"
 
         if not os.path.exists(savepath):
             os.makedirs(savepath)

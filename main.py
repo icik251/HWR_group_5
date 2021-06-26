@@ -19,6 +19,11 @@ parser = argparse.ArgumentParser(
 parser.add_argument(
     "images_dir", type=Path, help="Path to the directory where the images are"
 )
+parser.add_argument(
+    "output_dir",
+    type=Path,
+    help="Path to the directory where the results are going to be saved",
+)
 
 char2unicode = {
     "Alef": ("א", "U+05D0"),
@@ -51,10 +56,10 @@ char2unicode = {
 }
 
 
-def pipeline_logic(images_dir):
+def pipeline_logic(images_dir, save_path):
 
     # Logic for extracing the lines and save them in a structure as follows:
-    line_segmentation(images_dir)
+    line_segmentation(images_dir, save_path)
     # data\\images\\image_name_folder
     #    line_1_folder
     #    line_2_folder (and so on)
@@ -66,7 +71,7 @@ def pipeline_logic(images_dir):
     # Iterate image folders and their nested folders to get the line
 
     # Maybe change this to "results"
-    result_images_dir = "data\\images"
+    result_images_dir = save_path
 
     # CONSTANT VARIABLES
     # Choose a resizing mode depending on our best model later
@@ -188,7 +193,7 @@ def pipeline_logic(images_dir):
         temp_dict_of_sorted_lines = collections.OrderedDict(
             sorted(temp_dict_of_lines.items())
         )
-        
+
         line_folders = list(temp_dict_of_sorted_lines.values())
 
         for line_dir in line_folders:
@@ -340,7 +345,7 @@ def pipeline_logic(images_dir):
 
 def main():
     args = parser.parse_args()
-    pipeline_logic(images_dir=Path(args.images_dir))
+    pipeline_logic(images_dir=Path(args.images_dir), save_path=Path(args.output_dir))
 
 
 if __name__ == "__main__":
