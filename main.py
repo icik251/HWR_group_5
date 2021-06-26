@@ -17,12 +17,12 @@ parser = argparse.ArgumentParser(
     description="Run the Hebrew character recognizer and style classifier system"
 )
 parser.add_argument(
-    "images_dir", type=Path, help="Path to the directory where the images are"
+    "images_dir", type=Path, help="Path to the directory where the images that will be processed are located", required=True
 )
 parser.add_argument(
     "output_dir",
     type=Path,
-    help="Path to the directory where the results are going to be saved",
+    help="Path to the directory where the results are going to be saved", required=True
 )
 
 char2unicode = {
