@@ -12,7 +12,7 @@ def line_segmentation(imagepath, path_to_save, debug=False):
     for file in os.listdir(path):
         if not file.endswith(".pbm"):
             continue
-
+            
         savepath = str(path_to_save) + "/" + file[:-4] + "/"
 
         if not os.path.exists(savepath):

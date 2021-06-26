@@ -127,5 +127,6 @@ dmypy.json
 
 # data
 data
+config_data
 images/
 lines/
