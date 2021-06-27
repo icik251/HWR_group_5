@@ -103,7 +103,9 @@ class Model:
             "Yod": 25,
             "Zayin": 26,
         }
-
+        
+        ## Move model to cuda if available
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.checkpoint = None
         self.model = None
 
@@ -121,9 +123,6 @@ class Model:
             self.modify_output_layer(num_classes=27)
         elif self.mode == "style" and self.is_production is False:
             self.modify_output_layer(num_classes=3)
-
-        ## Move model to cuda if available
-        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     def load_model_training(self):
         self.model = MNISTResNet()
