@@ -24,9 +24,10 @@ parser.add_argument(
     help="Path to the directory where the images that will be processed are located",
 )
 parser.add_argument(
-    "output_folder",
+    "--output_folder",
     type=Path,
     help="Path to the directory where the results are going to be saved",
+    default="results"
 )
 
 char2unicode = {
@@ -62,8 +63,12 @@ char2unicode = {
 
 def pipeline_logic(images_dir, save_path):
 
+    output_files_dir = "processed_images"
+    results_dir = save_path
+    if not os.path.exists(results_dir):
+        os.makedirs(results_dir)
     # Logic for extracing the lines and save them in a structure as follows:
-    line_segmentation(images_dir, save_path)
+    line_segmentation(images_dir, output_files_dir)
     # data\\images\\image_name_folder
     #    line_1_folder
     #    line_2_folder (and so on)
@@ -73,9 +78,6 @@ def pipeline_logic(images_dir, save_path):
     #            segmented_char_n.png
 
     # Iterate image folders and their nested folders to get the line
-
-    # Maybe change this to "results"
-    result_images_dir = save_path
 
     # CONSTANT VARIABLES
     # Choose a resizing mode depending on our best model later
@@ -100,14 +102,14 @@ def pipeline_logic(images_dir, save_path):
         is_production=True,
     )
 
-    for image_dir in os.listdir(result_images_dir):
+    for image_dir in os.listdir(output_files_dir):
         # Process each line of the current image and extract characters
-        for line_dir in os.listdir(os.path.join(result_images_dir, image_dir)):
+        for line_dir in os.listdir(os.path.join(output_files_dir, image_dir)):
             if line_dir.endswith(".txt"):
                 continue
 
             images_in_line_dir_iter = os.listdir(
-                os.path.join(result_images_dir, image_dir, line_dir)
+                os.path.join(output_files_dir, image_dir, line_dir)
             )
             if line_dir.split("_")[0] == "line" and len(images_in_line_dir_iter) > 0:
                 for image_in_dir_line in images_in_line_dir_iter:
@@ -115,7 +117,7 @@ def pipeline_logic(images_dir, save_path):
                         0
                     ] == "line" and image_in_dir_line.endswith(".png"):
                         path_to_line_image = os.path.join(
-                            result_images_dir, image_dir, line_dir, image_in_dir_line
+                            output_files_dir, image_dir, line_dir, image_in_dir_line
                         )
                         line_processing = LineProcessing(path_to_line_image)
 
@@ -128,13 +130,13 @@ def pipeline_logic(images_dir, save_path):
                 list_of_original_char_images_names = list()
 
                 images_in_line_dir_iter = os.listdir(
-                    os.path.join(result_images_dir, image_dir, line_dir)
+                    os.path.join(output_files_dir, image_dir, line_dir)
                 )
 
                 for image_in_dir_line in images_in_line_dir_iter:
                     if image_in_dir_line.split("_")[0] == "char":
                         path_to_char_image = os.path.join(
-                            result_images_dir, image_dir, line_dir, image_in_dir_line
+                            output_files_dir, image_dir, line_dir, image_in_dir_line
                         )
 
                         # Append original image
@@ -176,13 +178,13 @@ def pipeline_logic(images_dir, save_path):
                     save_image(
                         original_char_image,
                         "{}_{}".format(pred_label, original_char_img_name),
-                        os.path.join(result_images_dir, image_dir, line_dir),
+                        os.path.join(output_files_dir, image_dir, line_dir),
                     )
 
     # Save the recognized characters in a file in the image dir
-    for image_dir in os.listdir(result_images_dir):
+    for image_dir in os.listdir(output_files_dir):
         # Process each line of the current image and extract characters
-        line_folders = os.listdir(os.path.join(result_images_dir, image_dir))
+        line_folders = os.listdir(os.path.join(output_files_dir, image_dir))
 
         # Sort folders by lines
         temp_dict_of_lines = dict()
@@ -205,7 +207,7 @@ def pipeline_logic(images_dir, save_path):
                 continue
 
             images_in_line_dir_iter = os.listdir(
-                os.path.join(result_images_dir, image_dir, line_dir)
+                os.path.join(output_files_dir, image_dir, line_dir)
             )
 
             dict_of_characters = dict()
@@ -235,7 +237,7 @@ def pipeline_logic(images_dir, save_path):
 
             f_recognized = open(
                 os.path.join(
-                    result_images_dir, image_dir, "{}_characters.txt".format(image_dir)
+                    results_dir, "{}_characters.txt".format(image_dir)
                 ),
                 "a",
                 encoding="utf-8",
@@ -258,31 +260,31 @@ def pipeline_logic(images_dir, save_path):
         print(
             "Recognized characters saved in {} for image {}".format(
                 os.path.join(
-                    result_images_dir, image_dir, "{}_characters.txt".format(image_dir)
+                    results_dir, "{}_characters.txt".format(image_dir)
                 ),
                 image_dir,
             )
         )
 
     # After all lines for all images are recognized, we loop again to classify style
-    for image_dir in os.listdir(result_images_dir):
+    for image_dir in os.listdir(output_files_dir):
 
         list_of_image_probabilities = list()
 
-        for line_dir in os.listdir(os.path.join(result_images_dir, image_dir)):
+        for line_dir in os.listdir(os.path.join(output_files_dir, image_dir)):
             if line_dir.split("_")[0] == "line" and len(images_in_line_dir_iter) > 0:
 
                 list_of_resized_characters_to_style_classify = list()
 
                 for image_in_dir_line in os.listdir(
-                    os.path.join(result_images_dir, image_dir, line_dir)
+                    os.path.join(output_files_dir, image_dir, line_dir)
                 ):
                     if (
                         image_in_dir_line.split("_")[0]
                         in style_model_obj.char2idx.keys()
                     ):
                         path_to_recognized_char_image = os.path.join(
-                            result_images_dir, image_dir, line_dir, image_in_dir_line
+                            output_files_dir, image_dir, line_dir, image_in_dir_line
                         )
 
                         character_processing = CharacterProcessing(
@@ -330,7 +332,7 @@ def pipeline_logic(images_dir, save_path):
         # Save the style in a txt in the image dir
         with open(
             os.path.join(
-                result_images_dir, image_dir, "{}_style.txt".format(image_dir)
+                results_dir, "{}_style.txt".format(image_dir)
             ),
             "w",
         ) as f:
@@ -340,7 +342,7 @@ def pipeline_logic(images_dir, save_path):
         print(
             "Classified style saved in {} for image {}".format(
                 os.path.join(
-                    result_images_dir, image_dir, "{}_style.txt".format(image_dir)
+                    results_dir, "{}_style.txt".format(image_dir)
                 ),
                 image_dir,
             )
