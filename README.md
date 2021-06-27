@@ -8,7 +8,7 @@
 3. Use the following line in the command prompt to install the rest of the dependencies:
 **pip install -r requirements.txt**
 
-4. Unzip the folder **"config_data"** in the main project folder. The name and the structure of the folder should not be changed. This folder contains the created models and other required files for prrocessing the images **Download link: https://drive.google.com/file/d/1dizI-9QNatSiQR17w8Fl30cTacJE6ZgB/view**
+4. Unzip the folder **"config_data"** in the main project folder. The name and the structure of the folder should not be changed. This folder contains the created models and other required files for prrocessing the images. \ **Download link: https://drive.google.com/file/d/1dizI-9QNatSiQR17w8Fl30cTacJE6ZgB/view**
 
 ## How to run the recognizer and style classifier system
 
