@@ -27,7 +27,7 @@ main.py is the file, which runs the whole pipeline. Iteratively each image will 
 3. Recognition of segmented characters.
 4. Style classification for each recognized character in an image, followed by applying Naive Bayes on the probabilities for all of the characters, which results in the most probable style of the image
 
-Running the program will automatically create the **"output_folder"** and a folder **"processed_images"** in the main project directory. The **"processed_images"** is a folder that is required by the internal logic of the system. In the **"processed_images"** you can find the images, their segmented lines, segmented characters and recognized characters.
+Running the program will automatically create the **"output_folder"** (by default **"results"**) and a folder **"processed_images"** in the main project directory. The **"processed_images"** is a folder that is required by the internal logic of the system. In the **"processed_images"** you can find the images, their segmented lines, segmented characters and recognized characters.
 
 ## Code Structure
 
