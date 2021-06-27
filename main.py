@@ -20,13 +20,11 @@ parser.add_argument(
     "input_folder",
     type=Path,
     help="Path to the directory where the images that will be processed are located",
-    required=True,
 )
 parser.add_argument(
     "output_folder",
     type=Path,
     help="Path to the directory where the results are going to be saved",
-    required=True,
 )
 
 char2unicode = {
@@ -349,7 +347,9 @@ def pipeline_logic(images_dir, save_path):
 
 def main():
     args = parser.parse_args()
-    pipeline_logic(images_dir=Path(args.images_dir), save_path=Path(args.output_dir))
+    pipeline_logic(
+        images_dir=Path(args.input_folder), save_path=Path(args.output_folder)
+    )
 
 
 if __name__ == "__main__":

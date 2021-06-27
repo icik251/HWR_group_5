@@ -2,7 +2,6 @@ from character_style_recognition.early_stopping import EarlyStopping
 from mnist_model import MNISTResNet
 
 import torch.nn as nn
-import torch.nn.functional as F
 import torch
 from datetime import date, datetime
 import os
@@ -212,7 +211,7 @@ class Model:
             index=[item for item in list_of_classes],
             columns=[item for item in list_of_classes],
         )
-        
+
         plt.figure(figsize=(24, 21), dpi=25)
         cm_plot = sn.heatmap(df_cm, annot=True)
         cm_plot.figure.savefig(path_to_save)
