@@ -3,6 +3,8 @@ import numpy as np
 from pathlib import Path
 import os
 import argparse
+import warnings
+warnings.filterwarnings("ignore")
 
 from utils import load_image, save_image
 from character_segmentation.line_processing import LineProcessing
@@ -168,7 +170,6 @@ def pipeline_logic(images_dir, save_path):
                 list_of_reco_predictions = reco_model_obj.recognize_character(
                     reco_production_dataloader
                 )
-
                 # Save predicted images with label in the line folder
                 for original_char_image, original_char_img_name, pred_label in zip(
                     list_of_original_character_images,
@@ -180,6 +181,7 @@ def pipeline_logic(images_dir, save_path):
                         "{}_{}".format(pred_label, original_char_img_name),
                         os.path.join(output_files_dir, image_dir, line_dir),
                     )
+        print("Characters extracted and recognized for {}".format(image_dir))
 
     # Save the recognized characters in a file in the image dir
     for image_dir in os.listdir(output_files_dir):
