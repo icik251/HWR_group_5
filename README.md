@@ -3,7 +3,7 @@
 # Prerequisites
 1. Install Python 3.8.5.
 
-2. Install PyTorch from: https://pytorch.org/get-started/locally/ depending on your system and environment.
+2. Install PyTorch from: https://pytorch.org/get-started/locally/ depending on your system and environment. Make sure to install a CPU version. 
 
 3. Use the following line in the command prompt to install the rest of the dependencies:
 pip install -r requirements.txt
