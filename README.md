@@ -18,11 +18,11 @@ python main.py **[input_folder]**
 
 **[input_folder]** is the name of the folder containing the images.
 
-For example: python main.py "input_images"
+For example: python `main.py` "input_images"
 
 An optional argument **[--output_folder]** is the name of the folder you want the output to be found. It defaults to "results" as required, so no futher actions are required if you do not want to change the output folder.
 
-main.py is the file, which runs the whole pipeline. Iteratively each image will be processed in the following way:
+`main.py` is the file, which runs the whole pipeline. Iteratively each image will be processed in the following way:
 1. Line segmentation
 2. Character and word segmentation
 3. Recognition of segmented characters.
