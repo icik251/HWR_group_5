@@ -33,9 +33,9 @@ class CharacterProcessing:
 
     def _load_shape(self):
         if self.resize_mode == "smallest":
-            path_to_letter_folders = "config_data\\resizing_shapes\\normalized_smallest"
+            path_to_letter_folders = "config_data/resizing_shapes/normalized_smallest"
         elif self.resize_mode == "average":
-            path_to_letter_folders = "config_data\\resizing_shapes\\normalized_avg"
+            path_to_letter_folders = "config_data/resizing_shapes/normalized_avg"
 
         if self.model_mode == "recognition":
             path_to_shape = os.path.join(

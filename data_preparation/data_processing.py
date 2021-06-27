@@ -112,12 +112,12 @@ class DataProcessing:
 
                     if save_mode:
                         path_to_save_image = os.path.join(
-                            "data\\processed_data\\character_recognition\\normalized_avg",
+                            "data/processed_data/character_recognition/normalized_avg",
                             partition_key,
                             char_name,
                         )
                         path_to_save_shape = os.path.join(
-                            "data\\resizing_shapes\\normalized_avg",
+                            "data/resizing_shapes/normalized_avg",
                             char_name,
                         )
                         save_image(resized_image, idx, path_to_save_image)
@@ -155,12 +155,12 @@ class DataProcessing:
 
                     if save_mode:
                         path_to_save_image = os.path.join(
-                            "data\\processed_data\\character_recognition\\normalized_smallest",
+                            "data/processed_data/character_recognition/normalized_smallest",
                             partition_key,
                             char_name,
                         )
                         path_to_save_shape = os.path.join(
-                            "data\\resizing_shapes\\normalized_smallest",
+                            "data/resizing_shapes/normalized_smallest",
                             char_name,
                         )
                         save_image(resized_image, idx, path_to_save_image)
@@ -210,13 +210,13 @@ class DataProcessing:
 
                         if save_mode:
                             path_to_save_image = os.path.join(
-                                "data\\processed_data\\style_classification\\normalized_avg",
+                                "data/processed_data/style_classification/normalized_avg",
                                 partition_key,
                                 style_class,
                                 char_name,
                             )
                             path_to_save_shape = os.path.join(
-                                "data\\resizing_shapes\\normalized_avg",
+                                "data/resizing_shapes/normalized_avg",
                                 char_name,
                             )
                             save_image(resized_image, idx, path_to_save_image)
@@ -278,13 +278,13 @@ class DataProcessing:
 
                         if save_mode:
                             path_to_save_image = os.path.join(
-                                "data\\processed_data\\style_classification\\normalized_smallest",
+                                "data/processed_data/style_classification/normalized_smallest",
                                 partition_key,
                                 style_class,
                                 char_name,
                             )
                             path_to_save_shape = os.path.join(
-                                "data\\resizing_shapes\\normalized_smallest",
+                                "data/resizing_shapes/normalized_smallest",
                                 char_name,
                             )
                             save_image(resized_image, idx, path_to_save_image)
