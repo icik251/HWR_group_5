@@ -31,10 +31,10 @@ main.py is the file, which runs the whole pipeline. Iteratively each image will 
 The root level consists of the following file: 
 - `main.py` which launches the entire pipeline
 
+In the `line_segmentation.py` file one can find the code for the line segmentation step.
 In the `character_segmentation` folder one can find the files required for the character segmentation step.
-In the `character_style_recognition` folder one can find the files required for the style recognition step.
+In the `character_style_recognition` folder one can find the files required for the character recognition and style classification step.
 In the `data_preparation` folder one can find the files required for the data preparation step.
-In the `src` folder one can find two subfolder: `model` and `view`.
 
 ## Authors
 
