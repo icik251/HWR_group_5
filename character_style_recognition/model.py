@@ -2,7 +2,6 @@ from .early_stopping import EarlyStopping
 from .mnist_model import MNISTResNet
 
 import torch.nn as nn
-import torch.nn.functional as F
 import torch
 from datetime import date, datetime
 import os
@@ -105,6 +104,8 @@ class Model:
             "Zayin": 26,
         }
 
+        ## Move model to cuda if available
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.checkpoint = None
         self.model = None
 
@@ -123,9 +124,6 @@ class Model:
         elif self.mode == "style" and self.is_production is False:
             self.modify_output_layer(num_classes=3)
 
-        ## Move model to cuda if available
-        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
     def load_model_training(self):
         self.model = MNISTResNet()
         if self.model_path_to_load is not None:
@@ -139,7 +137,9 @@ class Model:
             elif self.mode == "style":
                 self.model = MNISTResNet(num_classes=3)
 
-            self.checkpoint = torch.load(self.model_path_to_load)
+            self.checkpoint = torch.load(
+                self.model_path_to_load, map_location=self.device
+            )
             state_dict = self.checkpoint["state_dict"]
 
             # Change name of last layer state dict key as it is not recognized
@@ -212,7 +212,7 @@ class Model:
             index=[item for item in list_of_classes],
             columns=[item for item in list_of_classes],
         )
-        
+
         plt.figure(figsize=(24, 21), dpi=25)
         cm_plot = sn.heatmap(df_cm, annot=True)
         cm_plot.figure.savefig(path_to_save)

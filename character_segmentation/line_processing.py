@@ -198,12 +198,15 @@ class LineProcessing:
             # plt.imshow(character_image)
             # plt.show()
             # print(number_of_black_pix / number_of_white_pix)
-            if (
-                (number_of_black_pix / number_of_white_pix) < 0.05
-                or character_image.shape[0] < 10
-                or character_image.shape[1] < 10
-            ):
-                list_idx_to_del.append(idx)
+            try:
+                if (
+                    (number_of_black_pix / number_of_white_pix) < 0.05
+                    or character_image.shape[0] < 10
+                    or character_image.shape[1] < 10
+                ):
+                    list_idx_to_del.append(idx)
+            except Exception as e:
+                pass
 
         for idx_to_del in reversed(list_idx_to_del):
             del self.list_of_segmented_characters[idx_to_del]
@@ -466,25 +469,3 @@ class LineProcessing:
         self.remove_non_character_images()
         self.cut_top_and_bottom_white_pix()
         self.save_segmented_characters()
-
-
-"""
-for i in range(1, 5):
-
-    line_processing = LineProcessing(
-        "D:\\PythonProjects\\HWR_group_5\\data\\testing_word_segmentation\\line_{}\\line_{}.png".format(
-            i, i
-        )
-    )
-
-    line_processing.logic()
-"""
-"""
-line_processing = LineProcessing(
-        "D:\\PythonProjects\\HWR_group_5\\data\\testing_word_segmentation\\line_{}\\line_{}.png".format(
-            5, 5
-        )
-    )
-
-line_processing.logic()
-"""

@@ -1,17 +1,19 @@
 import collections
 import numpy as np
+from pathlib import Path
+import os
+import argparse
+
 from utils import load_image, save_image
 from character_segmentation.line_processing import LineProcessing
 from data_preparation.character_processing import CharacterProcessing
-from model import Model
-from pathlib import Path
+from character_style_recognition.model import Model
 from character_style_recognition.data_prep_tensor import (
     RecognitionDataPrepTensor,
     StyleDataPrepTensor,
 )
 from line_segmentation import line_segmentation
-import os
-import argparse
+
 
 parser = argparse.ArgumentParser(
     description="Run the Hebrew character recognizer and style classifier system"

@@ -104,28 +104,3 @@ class DataLoader:
         return dict_of_result
 
 
-# Test the methods
-"""
-data_loader = DataLoader()
-
-dict_result = data_loader.get_characters_train_data(
-    path="D:\\PythonProjects\\HWR_group_5\\data\\character_set_labeled",
-    num_samples=20,
-)
-
-for k, v in dict_result.items():
-    print(k)
-    print(len(v))
-    print("----------")
-
-list_of_binarized = data_loader.get_sea_scrolls_images(
-    path="D:\\PythonProjects\\HWR_group_5\\data\\dead_sea_scrolls_images"
-)
-print(list_of_binarized)
-
-result = data_loader.get_characters_style_based(
-    "D:\\PythonProjects\\HWR_group_5\\data\\style_classification\\characters_for_style_classification"
-)
-
-print(result)
-"""
