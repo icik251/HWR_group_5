@@ -10,9 +10,9 @@ def line_segmentation(imagepath, path_to_save, debug=False):
         os.makedirs(path_to_save)
 
     for file in os.listdir(path):
-        if not file.endswith(".pbm"):
+        if not file.endswith(".jpeg") and not file.endswith(".jpg"):
             continue
-            
+
         savepath = str(path_to_save) + "/" + file[:-4] + "/"
 
         if not os.path.exists(savepath):

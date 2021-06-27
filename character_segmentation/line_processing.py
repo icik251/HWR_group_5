@@ -434,9 +434,11 @@ class LineProcessing:
         )
         """
         kernel = np.ones((5, 5), np.uint8)
-
-        img_erode = cv2.erode(image, kernel, iterations=1)
-        img_filled = cv2.dilate(img_erode, kernel, iterations=1)
+        try:
+            img_erode = cv2.erode(image, kernel, iterations=1)
+            img_filled = cv2.dilate(img_erode, kernel, iterations=1)
+        except Exception as e:
+            img_filled = image
 
         return img_filled
 
