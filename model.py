@@ -137,7 +137,9 @@ class Model:
             elif self.mode == "style":
                 self.model = MNISTResNet(num_classes=3)
 
-            self.checkpoint = torch.load(self.model_path_to_load)
+            self.checkpoint = torch.load(
+                self.model_path_to_load, map_location=self.device
+            )
             state_dict = self.checkpoint["state_dict"]
 
             # Change name of last layer state dict key as it is not recognized
