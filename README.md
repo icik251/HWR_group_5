@@ -14,16 +14,20 @@
 
 To run the program, run
 
-python main.py **[input_folder]** **[output_folder]** where\
-**[input_folder]** is the name of the folder containing the images and \
-**[output_folder]** is the name of the folder you want the output to be found \
-For example: python main.py "input_images" "output_images"
+python main.py **[input_folder]**
+**[input_folder]** is the name of the folder containing the images.
+
+For example: python main.py "input_images"
+
+An optional argument **[--output_folder]** is the name of the folder you want the output to be found. It defaults to "results" as required, so no futher actions are required if you do not want to change the output folder.
 
 main.py is the file, which runs the whole pipeline. Iteratively each image will be processed in the following way:
 1. Line segmentation
 2. Character and word segmentation
 3. Recognition of segmented characters.
 4. Style classification for each recognized character in an image, followed by applying Naive Bayes on the probabilities for all of the characters, which results in the most probable style of the image
+
+Running the program will automatically create the **"output_folder"** and a folder **"processed_images"** in the main project directory. The **"processed_images"** is a folder that is required by the internal logic of the system. In the **"processed_images"** you can find the images, their segmented lines, segmented characters and recognized characters.
 
 ## Code Structure
 
