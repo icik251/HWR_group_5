@@ -15,6 +15,7 @@
 To run the program, run
 
 python main.py **[input_folder]**
+
 **[input_folder]** is the name of the folder containing the images.
 
 For example: python main.py "input_images"
