@@ -10,7 +10,7 @@ AllSIFTFeatures = cell(n, 3); %Matrix of matrices for all SIFT features
 for i=1:n
       %Check for correct directory.
       %if(~isempty(regexp(image_files(i).folder,expression, 'once')))
-          path = strcat(image_files(i).folder,'/',image_files(i).name);
+          path = strcat(image_files(i).folder,'\',image_files(i).name);
           picture = imresize(imread(path), dsf, 'bilinear');
           [im, des, loc] = sift(picture); %Compute SIFT features
           AllSIFTFeatures{i,1} = im;
