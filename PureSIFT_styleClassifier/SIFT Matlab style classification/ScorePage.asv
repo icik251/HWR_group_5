@@ -1,0 +1,39 @@
+%Compute the typical SIFT features for each time period
+X = AllSiftFeatures('characters_for_style_classification/Archaic');
+Y = AllSiftFeatures('characters_for_style_classification/Hasmonean');
+Z = AllSiftFeatures('characters_for_style_classification/Herodian');
+
+
+%Count Matches of SIFT
+
+
+R(1,1) = CountTotalMatches( X , 'full_images_periods/Archaic/archaic-821.png' );
+R(1,2) = CountTotalMatches( Y , 'full_images_periods/Archaic/archaic-821.png' );
+R(1,3) = CountTotalMatches( Z , 'full_images_periods/Archaic/archaic-821.png' );
+
+R(2,1) = CountTotalMatches( X , 'full_images_periods/Archaic/archaic-1110.png' );
+R(2,2) = CountTotalMatches( Y , 'full_images_periods/Archaic/archaic-1110.png' );
+R(2,3) = CountTotalMatches( Z , 'full_images_periods/Archaic/archaic-1110.png' );
+
+
+R(3,1) = CountTotalMatches( X , 'full_images_periods/Hasmonean/hasmonean-330-1.png' );
+R(3,2) = CountTotalMatches( Y , 'full_images_periods/Hasmonean/hasmonean-330-1.png' );
+R(3,3) = CountTotalMatches( Z , 'full_images_periods/Hasmonean/hasmonean-330-1.png' );
+
+R(4,1) = CountTotalMatches( X , 'full_images_periods/Hasmonean/hasmonean-674.png' );
+R(4,2) = CountTotalMatches( Y , 'full_images_periods/Hasmonean/hasmonean-674.png' );
+R(4,3) = CountTotalMatches( Z , 'full_images_periods/Hasmonean/hasmonean-674.png' );
+
+
+R(5,1) = CountTotalMatches( X , 'full_images_periods/Herodian/herodian-582.png' );
+R(5,2) = CountTotalMatches( Y , 'full_images_periods/Herodian/herodian-582.png' );
+R(5,3) = CountTotalMatches( Z , 'full_images_periods/Herodian/herodian-582.png' );
+
+R(6,1) = CountTotalMatches( X , 'full_images_periods/Herodian/herodian-608.png' );
+R(6,2) = CountTotalMatches( Y , 'full_images_periods/Herodian/herodian-608.png' );
+R(6,3) = CountTotalMatches( Z , 'full_images_periods/Herodian/herodian-608.png' );
+
+
+%
+A = R./(sum(R,2)*ones(1,3));
+FinalScores = A./(ones(6,1)*mean(A))

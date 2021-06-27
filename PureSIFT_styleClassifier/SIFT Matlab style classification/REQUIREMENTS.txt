@@ -1,0 +1,4 @@
+Windows 10,
+Matlab R2020a or R2019a,
+C,
+Turn off dropbox synchronisation, since it could interfere.

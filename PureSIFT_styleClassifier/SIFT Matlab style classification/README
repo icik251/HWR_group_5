@@ -1,0 +1,29 @@
+Style Classification of Dead Sea Scrolls
+
+Instructions:
+Use Matlab on Windows (had no time to switch to Linux)
+0. Start Matlab
+1. Set Matlab's current working folder to this folder with the program files.
+2. In Matlabs's command line, run the function 'StyleClassifier' with a folder path as argument.
+   For example: StyleClassifier( 'path/to/test/images/' )
+3. Wait for the training and classification.
+4. results can later be found as txt files in the folder 'results/'.
+
+The program classifies pages of the dead sea scrolls by counting the number
+of SIFTinvariant features that match between their writing and 
+the provided sets of letters that belong to 
+the three classes, Archaic, Hasmonean, and Herodian.
+
+programmable files:
+StyleClassifier: Contains the main function that classifies based on log ratios between numbers of matches with styles.
+AllSiftFeatures: iterates through the subfolders of letters, downsamples them and returns all their sift features.
+CountTotalMatches: Splits the full images and Counts their matches with the features of letters.
+A further script 'ScoreSixPages' is provided which classifies six pages without training on pages, but only on the letters. It could be mentioned in the final report.
+
+Our implementation is based on a SIFT demo by David Lowe (lowe@cs.ubc.ca)
+ (Version 4, July 6, 2005) that is capable of extracting features and matching them.
+I adapted the program to read all the subfolders containing the images of letters.
+The original SIFT feature extraction was unable to handle the size of the full images, which I solved by splitting the images.
+The original matching algorithm failed when an image had less than two features, which I had to fix as well.
+The original program was not a classifier, but I programmed it to do classificaion.
+The images are downsampled by a factor of 3 in order to avoid noise caused by irrelevant small scale patters.
